@@ -9,7 +9,7 @@
     "test": "jest"
   },
   "bin": {
-    "generate-git-info": "node ./dist/server-version/git-info-generator.mjs"
+    "api-toolkit-git-info": "./bin/api-toolkit-git-info.js"
   },
   "repository": {
     "type": "git",
@@ -20,7 +20,8 @@
     "toolkit"
   ],
   "files": [
-    "dist/"
+    "dist/",
+    "bin/"
   ],
   "author": "Hiro Systems PBC <engineering@hiro.so> (https://hiro.so)",
   "license": "Apache 2.0",
