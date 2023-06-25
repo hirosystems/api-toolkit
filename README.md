@@ -43,8 +43,8 @@ gracefully on unhandled exceptions or interrupt signals.
 
 ### Server versioning
 
-* JS executable tool to generate API versioning information based on Git branch, tag, and latest
-  commit
+* `api-toolkit-git-info` executable tool to generate API versioning information based on Git branch,
+  tag, and latest commit
 * Helpers to extract version info to display at runtime or on documentation
 
 ## License
