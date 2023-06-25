@@ -3,11 +3,13 @@
   "version": "1.0.0",
   "description": "API development toolkit",
   "main": "./dist/index.js",
+  "typings": "./dist/index.d.ts",
   "scripts": {
-    "build": "rimraf ./dist && tsc --project tsconfig.build.json",
-    "start": "node dist/src/index.js",
-    "start-ts": "ts-node ./src/index.ts",
+    "build": "rimraf ./dist && tsc --project tsconfig.build.json && copyfiles -u 1 ./src/server-version/*.mjs ./dist",
     "test": "jest"
+  },
+  "bin": {
+    "generate-git-info": "node ./dist/server-version/git-info-generator.mjs"
   },
   "repository": {
     "type": "git",
@@ -16,6 +18,9 @@
   "keywords": [
     "api",
     "toolkit"
+  ],
+  "files": [
+    "dist/"
   ],
   "author": "Hiro Systems PBC <engineering@hiro.so> (https://hiro.so)",
   "license": "Apache 2.0",
@@ -31,6 +36,7 @@
     "@typescript-eslint/eslint-plugin": "^5.56.0",
     "@typescript-eslint/parser": "^5.56.0",
     "babel-jest": "^29.5.0",
+    "copyfiles": "^2.4.1",
     "eslint": "^8.36.0",
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-tsdoc": "^0.2.17",

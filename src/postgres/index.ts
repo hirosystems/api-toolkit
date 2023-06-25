@@ -92,7 +92,7 @@ export function getPostgres({
   connectionArgs: PgConnectionArgs;
   connectionConfig?: PgConnectionConfig;
 }): PgSqlClient {
-  const defaultAppName = 'postgres';
+  const defaultAppName = process.env.APPLICATION_NAME ?? 'postgres';
   let sql: PgSqlClient;
   if (typeof connectionArgs === 'string') {
     const uri = new URL(connectionArgs);
@@ -137,3 +137,9 @@ export function getPostgres({
   }
   return sql;
 }
+
+export * from './base-pg-store';
+export * from './errors';
+export * from './helpers';
+export * from './migrations';
+export * from './types';

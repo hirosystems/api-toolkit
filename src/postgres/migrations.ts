@@ -1,11 +1,11 @@
-import * as path from 'path';
 import PgMigrate from 'node-pg-migrate';
 import { MigrationDirection } from 'node-pg-migrate/dist/types';
 import { logger } from '../logger';
 
-export async function runMigrations(direction: MigrationDirection) {
+export async function runMigrations(dir: string, direction: MigrationDirection) {
   await PgMigrate({
-    direction: direction,
+    dir,
+    direction,
     count: Infinity,
     ignorePattern: '.*map',
     databaseUrl: {
@@ -16,7 +16,6 @@ export async function runMigrations(direction: MigrationDirection) {
       database: process.env.PGDATABASE,
     },
     migrationsTable: 'pgmigrations',
-    dir: path.join(__dirname, '../../migrations'),
     logger: {
       info: msg => {},
       warn: msg => logger.warn(msg),
@@ -25,7 +24,7 @@ export async function runMigrations(direction: MigrationDirection) {
   });
 }
 
-export async function cycleMigrations() {
-  await runMigrations('down');
-  await runMigrations('up');
+export async function cycleMigrations(dir: string) {
+  await runMigrations(dir, 'down');
+  await runMigrations(dir, 'up');
 }
