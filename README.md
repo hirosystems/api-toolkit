@@ -13,11 +13,11 @@ You can start by installing the API Toolkit Library using npm:
 npm install @hirosystems/api-toolkit
 ```
 
-You should also set your application's name on an ENV variable so it can be reflected in log
-messages and database connections:
+You should also customize the following ENV variables that control how log messages are displayed:
 
 ```env
 APPLICATION_NAME=your-api-name
+LOG_LEVEL=info
 ```
 
 ## Featured tools
