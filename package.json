@@ -29,6 +29,7 @@
     "url": "https://github.com/hirosystems/api-toolkit/issues"
   },
   "homepage": "https://github.com/hirosystems/api-toolkit#readme",
+  "prettier": "@stacks/prettier-config",
   "devDependencies": {
     "@commitlint/cli": "^17.5.0",
     "@commitlint/config-conventional": "^17.4.4",
