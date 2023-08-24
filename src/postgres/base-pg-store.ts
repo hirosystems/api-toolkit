@@ -79,7 +79,7 @@ export class BasePgStore {
    * Refreshes a materialized view concurrently depending on the current environment.
    * @param viewName - Materialized view name
    */
-  async refreshMaterializedView(viewName: string) {
+  async refreshMaterializedView(viewName: string): Promise<void> {
     await this.sql`REFRESH MATERIALIZED VIEW ${
       isProdEnv ? this.sql`CONCURRENTLY` : this.sql``
     } ${this.sql(viewName)}`;
@@ -99,7 +99,8 @@ export class BasePgStoreModule {
   protected get sql(): PgSqlClient {
     return this.parent.sql;
   }
-  protected async sqlTransaction<T>(
+
+  async sqlTransaction<T>(
     callback: (sql: PgSqlClient) => T | Promise<T>,
     readOnly = true
   ): Promise<UnwrapPromiseArray<T>> {
@@ -109,5 +110,8 @@ export class BasePgStoreModule {
     callback: (sql: PgSqlClient) => T | Promise<T>
   ): Promise<UnwrapPromiseArray<T>> {
     return this.sqlTransaction(callback, false);
+  }
+  async refreshMaterializedView(viewName: string): Promise<void> {
+    return this.parent.refreshMaterializedView(viewName);
   }
 }
