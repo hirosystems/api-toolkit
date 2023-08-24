@@ -24,9 +24,13 @@ export type PgConnectionVars = {
 export type PgConnectionArgs = PgConnectionUri | PgConnectionVars;
 /** Postgres connection options */
 export type PgConnectionOptions = {
+  /** Time to wait before automatically closing an idle connection (s) */
   idleTimeout?: number;
+  /** Maximum allowed duration of any statement (ms) */
   statementTimeout?: number;
+  /** Maximum time a connection can exist (s) */
   maxLifetime?: number;
+  /** Max number of connections */
   poolMax?: number;
 };
 
