@@ -25,7 +25,7 @@ export async function runMigrations(
         ? args
         : {
             host: args.host,
-            port: args.port ? parseInt(args.port) : undefined,
+            port: args.port,
             user: args.user,
             password: args.password,
             database: args.database,

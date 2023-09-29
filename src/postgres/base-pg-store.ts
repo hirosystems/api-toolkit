@@ -1,5 +1,6 @@
 import { AsyncLocalStorage } from 'async_hooks';
 import { PgSqlClient } from '.';
+import { isProdEnv } from '../helpers';
 
 /**
  * AsyncLocalStorage used to determine if the current async context is running inside a SQL
@@ -72,5 +73,45 @@ export class BasePgStore {
     callback: (sql: PgSqlClient) => T | Promise<T>
   ): Promise<UnwrapPromiseArray<T>> {
     return this.sqlTransaction(callback, false);
+  }
+
+  /**
+   * Refreshes a materialized view concurrently depending on the current environment.
+   * @param viewName - Materialized view name
+   */
+  async refreshMaterializedView(viewName: string): Promise<void> {
+    await this.sql`REFRESH MATERIALIZED VIEW ${
+      isProdEnv ? this.sql`CONCURRENTLY` : this.sql``
+    } ${this.sql(viewName)}`;
+  }
+}
+
+/**
+ * Base module that extends PgStore functionality and allows organizing queries in separate files.
+ */
+export class BasePgStoreModule {
+  private readonly parent: BasePgStore;
+
+  constructor(db: BasePgStore) {
+    this.parent = db;
+  }
+
+  protected get sql(): PgSqlClient {
+    return this.parent.sql;
+  }
+
+  async sqlTransaction<T>(
+    callback: (sql: PgSqlClient) => T | Promise<T>,
+    readOnly = true
+  ): Promise<UnwrapPromiseArray<T>> {
+    return this.parent.sqlTransaction(callback, readOnly);
+  }
+  async sqlWriteTransaction<T>(
+    callback: (sql: PgSqlClient) => T | Promise<T>
+  ): Promise<UnwrapPromiseArray<T>> {
+    return this.sqlTransaction(callback, false);
+  }
+  async refreshMaterializedView(viewName: string): Promise<void> {
+    return this.parent.refreshMaterializedView(viewName);
   }
 }
