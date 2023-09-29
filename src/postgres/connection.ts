@@ -17,7 +17,7 @@ export type PgConnectionVars = {
   user?: string;
   password?: string;
   host?: string;
-  port?: string;
+  port?: number;
   schema?: string;
   ssl?: boolean;
   application_name?: string;
@@ -26,8 +26,13 @@ export type PgConnectionVars = {
 export type PgConnectionArgs = PgConnectionUri | PgConnectionVars;
 /** Postgres connection options */
 export type PgConnectionOptions = {
+  /** Time to wait before automatically closing an idle connection (s) */
   idleTimeout?: number;
+  /** Maximum allowed duration of any statement (ms) */
+  statementTimeout?: number;
+  /** Maximum time a connection can exist (s) */
   maxLifetime?: number;
+  /** Max number of connections */
   poolMax?: number;
 };
 
@@ -51,7 +56,7 @@ export function standardizedConnectionArgs(
       user: process.env.PGUSER,
       password: process.env.PGPASSWORD,
       host: process.env.PGHOST,
-      port: process.env.PGPORT ?? '5432',
+      port: parseInt(process.env.PGPORT ?? '5432'),
       ssl: true,
       application_name: `${appName}:${appUsage}`,
     };
@@ -152,7 +157,7 @@ export function getPostgres({
       user: args.user,
       password: args.password,
       host: args.host,
-      port: args.port ? parseInt(args.port) : undefined,
+      port: args.port,
       ssl: args.ssl,
       idle_timeout: connectionConfig?.idleTimeout,
       max_lifetime: connectionConfig?.maxLifetime,
@@ -161,6 +166,7 @@ export function getPostgres({
       connection: {
         application_name: args.application_name,
         search_path: args.schema,
+        statement_timeout: connectionConfig?.statementTimeout?.toString(),
       },
     });
   }
