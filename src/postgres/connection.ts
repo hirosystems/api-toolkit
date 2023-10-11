@@ -6,6 +6,8 @@ import { PG_TYPE_MAPPINGS } from './types';
 
 /** Postgres client instance */
 export type PgSqlClient = postgres.Sql<any> | postgres.TransactionSql<any>;
+/** Postgres pending query or query fragment */
+export type PgSqlQuery = postgres.PendingQuery<postgres.Row[]>;
 
 /** Postgres connection URI string */
 export type PgConnectionUri = string;
