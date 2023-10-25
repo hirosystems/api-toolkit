@@ -1,7 +1,7 @@
 import * as postgres from 'postgres';
 import { logger } from '../logger';
 import { isPgConnectionError } from './errors';
-import { stopwatch, timeout } from './helpers';
+import { stopwatch, timeout } from '../helpers/time';
 import { PG_TYPE_MAPPINGS } from './types';
 
 /** Postgres client instance */

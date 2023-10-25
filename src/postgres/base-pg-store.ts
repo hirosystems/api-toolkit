@@ -1,6 +1,6 @@
 import { AsyncLocalStorage } from 'async_hooks';
 import { PgSqlClient } from '.';
-import { isProdEnv } from '../helpers';
+import { isProdEnv } from '../helpers/values';
 
 /**
  * AsyncLocalStorage used to determine if the current async context is running inside a SQL

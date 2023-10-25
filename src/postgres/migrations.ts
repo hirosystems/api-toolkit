@@ -2,7 +2,7 @@ import PgMigrate from 'node-pg-migrate';
 import { MigrationDirection } from 'node-pg-migrate/dist/types';
 import { logger } from '../logger';
 import { PgConnectionArgs, connectPostgres, standardizedConnectionArgs } from './connection';
-import { isDevEnv, isTestEnv } from '../helpers';
+import { isDevEnv, isTestEnv } from '../helpers/values';
 
 /**
  * Run migrations in one direction.
