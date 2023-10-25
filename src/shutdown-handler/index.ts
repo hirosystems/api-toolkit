@@ -1,4 +1,4 @@
-import { logger } from "../logger";
+import { logger } from '../logger';
 
 const SHUTDOWN_SIGNALS = ['SIGINT', 'SIGTERM'] as const;
 
