@@ -52,10 +52,7 @@ export function parseBoolean(val: string | undefined | null): boolean {
  * is zero length.
  */
 export function bufferToHex(buff: Buffer, prefix: boolean = true): string {
-  if (buff.length === 0) {
-    return '';
-  }
-  return prefix ? '0x' : '' + buff.toString('hex');
+  return buff.length === 0 ? '' : (prefix ? '0x' : '') + buff.toString('hex');
 }
 
 /**
