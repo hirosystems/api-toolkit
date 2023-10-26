@@ -109,6 +109,14 @@ jobs:
       - test
     steps:
       - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
 
       - name: Semantic Release
         uses: cycjimmy/semantic-release-action@v4
