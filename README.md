@@ -1,4 +1,9 @@
-# API Toolkit
+
+       /     /   ▶ API Toolkit
+      / --- /      A comprehensive collection of tools designed by Hiro to simplify common tasks in
+     /     /       API development.
+
+[![NPM Package](https://img.shields.io/npm/v/@hirosystems/api-toolkit.svg?style=flat-square)](https://www.npmjs.org/package/@hirosystems/api-toolkit)
 
 The API Toolkit Library is a comprehensive collection of tools designed by Hiro to simplify common
 tasks in API development. This library provides functionalities for database management, application
