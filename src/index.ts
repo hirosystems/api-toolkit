@@ -1,3 +1,4 @@
+export * from './fastify';
 export * from './helpers';
 export * from './logger';
 export * from './postgres';

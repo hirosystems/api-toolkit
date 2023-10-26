@@ -26,7 +26,8 @@ Please see each tool's source directory for additional documentation
 
 ### Postgres
 
-* Superclass for connection support and SQL transaction management using [postgres.js](https://github.com/porsager/postgres)
+* Superclass for connection support and SQL transaction management using
+  [postgres.js](https://github.com/porsager/postgres)
 * Connection helpers with automatic retry logic, using the standard postgres ENV variables
 * Migration tools for migration apply and rollback using
   [node-pg-migrate](https://github.com/salsita/node-pg-migrate)
@@ -46,6 +47,16 @@ gracefully on unhandled exceptions or interrupt signals.
 * `api-toolkit-git-info` executable tool to generate API versioning information based on Git branch,
   tag, and latest commit
 * Helpers to extract version info to display at runtime or on documentation
+
+### Fastify
+
+* API server creation with CORS, Typebox and Pino logging
+* OpenAPI generator plugin with YAML and JSON exports
+
+### Helpers
+
+* Value conversion functions (hex strings, hashes, etc.)
+* Timer tools (stopwatch, waiters, etc.)
 
 ## License
 

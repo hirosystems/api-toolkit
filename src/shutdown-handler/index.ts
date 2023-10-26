@@ -1,4 +1,5 @@
-import { logger } from "../logger";
+import { resolveOrTimeout } from '../helpers/time';
+import { logger } from '../logger';
 
 const SHUTDOWN_SIGNALS = ['SIGINT', 'SIGTERM'] as const;
 
@@ -13,44 +14,6 @@ type ShutdownConfig = {
 const shutdownConfigs: ShutdownConfig[] = [];
 
 let isShuttingDown = false;
-
-/**
- * Set an execution time limit for a promise.
- * @param promise - The promise being capped to `timeoutMs` max execution time
- * @param timeoutMs - Timeout limit in milliseconds
- * @param wait - If we should wait another `timeoutMs` period for `promise` to resolve
- * @param waitHandler - If `wait` is `true`, this closure will be executed before waiting another `timeoutMs` cycle
- * @returns `true` if `promise` ended gracefully, `false` if timeout was reached
- */
-export async function resolveOrTimeout(
-  promise: Promise<void>,
-  timeoutMs: number,
-  wait: boolean = false,
-  waitHandler?: () => void
-) {
-  let timer: NodeJS.Timeout;
-  const result = await Promise.race([
-    new Promise((resolve, reject) => {
-      promise
-        .then(() => resolve(true))
-        .catch(error => reject(error))
-        .finally(() => clearTimeout(timer));
-    }),
-    new Promise((resolve, _) => {
-      timer = setInterval(() => {
-        if (!wait) {
-          clearTimeout(timer);
-          resolve(false);
-          return;
-        }
-        if (waitHandler) {
-          waitHandler();
-        }
-      }, timeoutMs);
-    }),
-  ]);
-  return result;
-}
 
 async function startShutdown() {
   if (isShuttingDown) {

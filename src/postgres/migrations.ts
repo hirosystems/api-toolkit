@@ -1,7 +1,8 @@
 import PgMigrate from 'node-pg-migrate';
 import { MigrationDirection } from 'node-pg-migrate/dist/types';
 import { logger } from '../logger';
-import { PgConnectionArgs, standardizedConnectionArgs } from './connection';
+import { PgConnectionArgs, connectPostgres, standardizedConnectionArgs } from './connection';
+import { isDevEnv, isTestEnv } from '../helpers/values';
 
 /**
  * Run migrations in one direction.
@@ -12,8 +13,18 @@ import { PgConnectionArgs, standardizedConnectionArgs } from './connection';
 export async function runMigrations(
   dir: string,
   direction: MigrationDirection,
-  connectionArgs?: PgConnectionArgs
+  connectionArgs?: PgConnectionArgs,
+  opts?: {
+    // Bypass the NODE_ENV check when performing a "down" migration which irreversibly drops data.
+    dangerousAllowDataLoss?: boolean;
+  }
 ) {
+  if (!opts?.dangerousAllowDataLoss && direction !== 'up' && !isTestEnv && !isDevEnv) {
+    throw new Error(
+      'Whoa there! This is a testing function that will drop all data from PG. ' +
+        'Set NODE_ENV to "test" or "development" to enable migration testing.'
+    );
+  }
   const args = standardizedConnectionArgs(connectionArgs, 'migrations');
   await PgMigrate({
     dir,
@@ -44,7 +55,99 @@ export async function runMigrations(
  * @param dir - Migrations directory
  * @param connectionArgs - Postgres connection args
  */
-export async function cycleMigrations(dir: string, connectionArgs?: PgConnectionArgs) {
+export async function cycleMigrations(
+  dir: string,
+  connectionArgs?: PgConnectionArgs,
+  opts?: {
+    // Bypass the NODE_ENV check when performing a "down" migration which irreversibly drops data.
+    dangerousAllowDataLoss?: boolean;
+    checkForEmptyData?: boolean;
+  }
+) {
   await runMigrations(dir, 'down', connectionArgs);
+  if (
+    opts?.checkForEmptyData &&
+    (await databaseHasData(connectionArgs, { ignoreMigrationTables: true }))
+  ) {
+    throw new Error('Migration down process did not completely remove DB tables');
+  }
   await runMigrations(dir, 'up', connectionArgs);
+}
+
+/**
+ * Check the `pg_class` table for any data structures contained in the database. We will consider
+ * any and all results here as "data" contained in the DB, since anything that is not a completely
+ * empty DB could lead to strange errors when running the API. See:
+ * https://www.postgresql.org/docs/current/catalog-pg-class.html
+ * @returns `boolean` if the DB has data
+ */
+export async function databaseHasData(
+  connectionArgs?: PgConnectionArgs,
+  opts?: {
+    ignoreMigrationTables?: boolean;
+  }
+): Promise<boolean> {
+  const sql = await connectPostgres({
+    usageName: 'contains-data-check',
+    connectionArgs: standardizedConnectionArgs(connectionArgs, 'contains-data-check'),
+  });
+  try {
+    const ignoreMigrationTables = opts?.ignoreMigrationTables ?? false;
+    const result = await sql<{ count: number }[]>`
+      SELECT COUNT(*)
+      FROM pg_class c
+      JOIN pg_namespace s ON s.oid = c.relnamespace
+      WHERE s.nspname = ${sql.options.connection.search_path}
+      ${ignoreMigrationTables ? sql`AND c.relname NOT LIKE 'pgmigrations%'` : sql``}
+    `;
+    return result.count > 0 && result[0].count > 0;
+  } catch (error: any) {
+    if (error.message?.includes('does not exist')) {
+      return false;
+    }
+    throw error;
+  } finally {
+    await sql.end();
+  }
+}
+
+/**
+ * Drops all tables from the Postgres DB. DANGEROUS!!!
+ */
+export async function dangerousDropAllTables(
+  connectionArgs?: PgConnectionArgs,
+  opts?: {
+    acknowledgePotentialCatastrophicConsequences?: 'yes';
+  }
+) {
+  if (opts?.acknowledgePotentialCatastrophicConsequences !== 'yes') {
+    throw new Error('Dangerous usage error.');
+  }
+  const sql = await connectPostgres({
+    usageName: 'dangerous-drop-all-tables',
+    connectionArgs: standardizedConnectionArgs(connectionArgs, 'dangerous-drop-all-tables'),
+  });
+  const schema = sql.options.connection.search_path;
+  try {
+    await sql.begin(async sql => {
+      const relNamesQuery = async (kind: string) => sql<{ relname: string }[]>`
+        SELECT relname
+        FROM pg_class c
+        JOIN pg_namespace s ON s.oid = c.relnamespace
+        WHERE s.nspname = ${schema} AND c.relkind = ${kind}
+      `;
+      // Remove materialized views first and tables second.
+      // Using CASCADE in these DROP statements also removes associated indexes and constraints.
+      const views = await relNamesQuery('m');
+      for (const view of views) {
+        await sql`DROP MATERIALIZED VIEW IF EXISTS ${sql(view.relname)} CASCADE`;
+      }
+      const tables = await relNamesQuery('r');
+      for (const table of tables) {
+        await sql`DROP TABLE IF EXISTS ${sql(table.relname)} CASCADE`;
+      }
+    });
+  } finally {
+    await sql.end();
+  }
 }
