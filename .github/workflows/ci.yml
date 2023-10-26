@@ -115,7 +115,7 @@ jobs:
         # Only run on non-PR events or only PRs that aren't from forks
         if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN || secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           SEMANTIC_RELEASE_PACKAGE: ${{ github.event.repository.name }}
         with:
