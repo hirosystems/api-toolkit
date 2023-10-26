@@ -3,7 +3,7 @@ import Fastify, { FastifyInstance } from 'fastify';
 import FastifyMetrics, { IFastifyMetrics } from 'fastify-metrics';
 import { PINO_LOGGER_CONFIG } from '../logger';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
-import { isProdEnv } from '../helpers';
+import { isProdEnv } from '../helpers/values';
 
 /**
  * Creates a Fastify server that handles Prometheus metrics and CORS headers automatically.

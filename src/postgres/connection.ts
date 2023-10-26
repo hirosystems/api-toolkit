@@ -1,13 +1,14 @@
 import * as postgres from 'postgres';
 import { logger } from '../logger';
 import { isPgConnectionError } from './errors';
-import { stopwatch, timeout } from './helpers';
+import { stopwatch, timeout } from '../helpers/time';
 import { PG_TYPE_MAPPINGS } from './types';
 
 /** Postgres client instance */
 export type PgSqlClient = postgres.Sql<any> | postgres.TransactionSql<any>;
 /** Postgres pending query or query fragment */
 export type PgSqlQuery = postgres.PendingQuery<postgres.Row[]>;
+export type PgSslMode = 'require' | 'allow' | 'prefer' | 'verify-full' | boolean | object;
 
 /** Postgres connection URI string */
 export type PgConnectionUri = string;
@@ -19,7 +20,7 @@ export type PgConnectionVars = {
   host?: string;
   port?: number;
   schema?: string;
-  ssl?: boolean;
+  ssl?: PgSslMode;
   application_name?: string;
 };
 /** Postgres connection arguments */
@@ -57,7 +58,7 @@ export function standardizedConnectionArgs(
       password: process.env.PGPASSWORD,
       host: process.env.PGHOST,
       port: parseInt(process.env.PGPORT ?? '5432'),
-      ssl: true,
+      ssl: process.env.PGSSLMODE as PgSslMode | undefined,
       application_name: `${appName}:${appUsage}`,
     };
   }
@@ -84,7 +85,7 @@ export async function connectPostgres({
   connectionConfig,
 }: {
   usageName: string;
-  connectionArgs: PgConnectionArgs;
+  connectionArgs?: PgConnectionArgs;
   connectionConfig?: PgConnectionOptions;
 }): Promise<PgSqlClient> {
   const initTimer = stopwatch();
@@ -141,7 +142,7 @@ export function getPostgres({
   connectionConfig,
 }: {
   usageName: string;
-  connectionArgs: PgConnectionArgs;
+  connectionArgs?: PgConnectionArgs;
   connectionConfig?: PgConnectionOptions;
 }): PgSqlClient {
   const args = standardizedConnectionArgs(connectionArgs, usageName);

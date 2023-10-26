@@ -1,12 +1,12 @@
 import { AsyncLocalStorage } from 'async_hooks';
 import { PgSqlClient } from '.';
-import { isProdEnv } from '../helpers';
+import { isProdEnv } from '../helpers/values';
 
 /**
  * AsyncLocalStorage used to determine if the current async context is running inside a SQL
  * transaction.
  */
-const sqlTransactionContext = new AsyncLocalStorage<SqlTransactionContext>();
+export const sqlTransactionContext = new AsyncLocalStorage<SqlTransactionContext>();
 type SqlTransactionContext = {
   usageName: string;
   sql: PgSqlClient;
@@ -20,7 +20,7 @@ type UnwrapPromiseArray<T> = T extends any[]
 /**
  * Base class that provides access to a SQL client and SQL transaction management.
  */
-export class BasePgStore {
+export abstract class BasePgStore {
   /**
    * Getter for a SQL client. If used inside `sqlTransaction`, the scoped client within the current
    * async context will be returned to guarantee transaction consistency.
@@ -35,8 +35,8 @@ export class BasePgStore {
     this._sql = sql;
   }
 
-  async close() {
-    await this._sql.end();
+  async close(args?: { timeout?: number }) {
+    await this._sql.end({ timeout: args?.timeout });
   }
 
   /**
@@ -89,7 +89,7 @@ export class BasePgStore {
 /**
  * Base module that extends PgStore functionality and allows organizing queries in separate files.
  */
-export class BasePgStoreModule {
+export abstract class BasePgStoreModule {
   private readonly parent: BasePgStore;
 
   constructor(db: BasePgStore) {
