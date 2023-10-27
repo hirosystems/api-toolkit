@@ -1,3 +1,10 @@
+## [1.2.2](https://github.com/hirosystems/api-toolkit/compare/v1.2.1...v1.2.2) (2023-10-27)
+
+
+### Bug Fixes
+
+* do not include tests in build output ([caca64b](https://github.com/hirosystems/api-toolkit/commit/caca64be639741b489c2447d7609b4d91539a494))
+
 ## [1.2.1](https://github.com/hirosystems/api-toolkit/compare/v1.2.0...v1.2.1) (2023-10-27)
 
 
