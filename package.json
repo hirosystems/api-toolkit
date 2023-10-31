@@ -1,6 +1,6 @@
 {
   "name": "@hirosystems/api-toolkit",
-  "version": "1.1.0",
+  "version": "1.2.2",
   "description": "API development toolkit",
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
@@ -35,6 +35,9 @@
   },
   "homepage": "https://github.com/hirosystems/api-toolkit#readme",
   "prettier": "@stacks/prettier-config",
+  "engines": {
+    "node": ">=18"
+  },
   "devDependencies": {
     "@commitlint/cli": "^17.5.0",
     "@commitlint/config-conventional": "^17.4.4",
