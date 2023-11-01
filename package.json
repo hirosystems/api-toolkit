@@ -1,6 +1,6 @@
 {
   "name": "@hirosystems/api-toolkit",
-  "version": "1.2.2",
+  "version": "1.3.0",
   "description": "API development toolkit",
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",

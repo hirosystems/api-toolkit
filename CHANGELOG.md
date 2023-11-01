@@ -1,3 +1,10 @@
+## [1.3.0](https://github.com/hirosystems/api-toolkit/compare/v1.2.2...v1.3.0) (2023-11-01)
+
+
+### Features
+
+* add iterator and enum value handling helpers ([#16](https://github.com/hirosystems/api-toolkit/issues/16)) ([cb263b8](https://github.com/hirosystems/api-toolkit/commit/cb263b801270147257243a7fa079f0c84115bc8d))
+
 ## [1.2.2](https://github.com/hirosystems/api-toolkit/compare/v1.2.1...v1.2.2) (2023-10-27)
 
 
