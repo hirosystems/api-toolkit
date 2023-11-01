@@ -130,3 +130,15 @@ export function numberToHex(number: number, paddingBytes: number = 4): string {
  * @returns Boolean
  */
 export const has0xPrefix = (val: string) => val.substring(0, 2).toLowerCase() === '0x';
+
+/**
+ * Converts a string to an enum value.
+ * @param enumType - The enum type
+ * @param value - The string value to convert
+ * @returns Enum item or undefined
+ */
+export function toEnumValue<T>(enm: { [s: string]: T }, value: string): T | undefined {
+  return (Object.values(enm) as unknown as string[]).includes(value)
+    ? (value as unknown as T)
+    : undefined;
+}
