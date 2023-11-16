@@ -4,20 +4,24 @@ import { logger } from '../logger';
 import { PgConnectionArgs, connectPostgres, standardizedConnectionArgs } from './connection';
 import { isDevEnv, isTestEnv } from '../helpers/values';
 
+export interface MigrationOptions {
+  // Bypass the NODE_ENV check when performing a "down" migration which irreversibly drops data.
+  dangerousAllowDataLoss?: boolean;
+  logMigrations?: boolean;
+}
+
 /**
  * Run migrations in one direction.
  * @param dir - Migrations directory
  * @param direction - Migration direction (`'down'` or `'up'`)
  * @param connectionArgs - Postgres connection args
+ * @param opts - Migration options
  */
 export async function runMigrations(
   dir: string,
   direction: MigrationDirection,
   connectionArgs?: PgConnectionArgs,
-  opts?: {
-    // Bypass the NODE_ENV check when performing a "down" migration which irreversibly drops data.
-    dangerousAllowDataLoss?: boolean;
-  }
+  opts?: MigrationOptions
 ) {
   if (!opts?.dangerousAllowDataLoss && direction !== 'up' && !isTestEnv && !isDevEnv) {
     throw new Error(
@@ -43,7 +47,7 @@ export async function runMigrations(
           },
     migrationsTable: 'pgmigrations',
     logger: {
-      info: _msg => {},
+      info: msg => (opts?.logMigrations === true ? logger.info(msg) : {}),
       warn: msg => logger.warn(msg),
       error: msg => logger.error(msg),
     },
@@ -54,24 +58,23 @@ export async function runMigrations(
  * Cycle migrations down and up.
  * @param dir - Migrations directory
  * @param connectionArgs - Postgres connection args
+ * @param opts - Migration options
  */
 export async function cycleMigrations(
   dir: string,
   connectionArgs?: PgConnectionArgs,
-  opts?: {
-    // Bypass the NODE_ENV check when performing a "down" migration which irreversibly drops data.
-    dangerousAllowDataLoss?: boolean;
+  opts?: MigrationOptions & {
     checkForEmptyData?: boolean;
   }
 ) {
-  await runMigrations(dir, 'down', connectionArgs);
+  await runMigrations(dir, 'down', connectionArgs, opts);
   if (
     opts?.checkForEmptyData &&
     (await databaseHasData(connectionArgs, { ignoreMigrationTables: true }))
   ) {
     throw new Error('Migration down process did not completely remove DB tables');
   }
-  await runMigrations(dir, 'up', connectionArgs);
+  await runMigrations(dir, 'up', connectionArgs, opts);
 }
 
 /**
