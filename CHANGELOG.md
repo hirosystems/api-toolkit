@@ -1,3 +1,10 @@
+## [1.3.2](https://github.com/hirosystems/api-toolkit/compare/v1.3.1...v1.3.2) (2023-11-17)
+
+
+### Bug Fixes
+
+* allow schema to be specified for migrations table ([#17](https://github.com/hirosystems/api-toolkit/issues/17)) ([aa9c0dd](https://github.com/hirosystems/api-toolkit/commit/aa9c0dd91acfbbf57ba671df0c0ecaacd0a8ea5e))
+
 ## [1.3.1](https://github.com/hirosystems/api-toolkit/compare/v1.3.0...v1.3.1) (2023-11-16)
 
 
