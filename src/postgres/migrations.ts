@@ -5,9 +5,12 @@ import { PgConnectionArgs, connectPostgres, standardizedConnectionArgs } from '.
 import { isDevEnv, isTestEnv } from '../helpers/values';
 
 export interface MigrationOptions {
-  // Bypass the NODE_ENV check when performing a "down" migration which irreversibly drops data.
+  /** Bypass the NODE_ENV check when performing a "down" migration which irreversibly drops data. */
   dangerousAllowDataLoss?: boolean;
+  /** Log all applied migrations */
   logMigrations?: boolean;
+  /** Name of the table used for migrations. Defaults to `pgmigrations`. */
+  migrationsTable?: string;
 }
 
 /**
@@ -45,7 +48,8 @@ export async function runMigrations(
             password: args.password,
             database: args.database,
           },
-    migrationsTable: 'pgmigrations',
+    migrationsTable: opts?.migrationsTable ?? 'pgmigrations',
+    schema: typeof args === 'string' ? 'public' : args.schema,
     logger: {
       info: msg => (opts?.logMigrations === true ? logger.info(msg) : {}),
       warn: msg => logger.warn(msg),
@@ -64,13 +68,17 @@ export async function cycleMigrations(
   dir: string,
   connectionArgs?: PgConnectionArgs,
   opts?: MigrationOptions & {
+    /** Validates if the database was cleared completely after all `down` migrations are done */
     checkForEmptyData?: boolean;
   }
 ) {
   await runMigrations(dir, 'down', connectionArgs, opts);
   if (
     opts?.checkForEmptyData &&
-    (await databaseHasData(connectionArgs, { ignoreMigrationTables: true }))
+    (await databaseHasData(connectionArgs, {
+      ignoreMigrationTables: true,
+      migrationsTable: opts.migrationsTable,
+    }))
   ) {
     throw new Error('Migration down process did not completely remove DB tables');
   }
@@ -88,6 +96,7 @@ export async function databaseHasData(
   connectionArgs?: PgConnectionArgs,
   opts?: {
     ignoreMigrationTables?: boolean;
+    migrationsTable?: string;
   }
 ): Promise<boolean> {
   const sql = await connectPostgres({
@@ -96,12 +105,13 @@ export async function databaseHasData(
   });
   try {
     const ignoreMigrationTables = opts?.ignoreMigrationTables ?? false;
+    const tableName = opts?.migrationsTable ?? 'pgmigrations';
     const result = await sql<{ count: number }[]>`
       SELECT COUNT(*)
       FROM pg_class c
       JOIN pg_namespace s ON s.oid = c.relnamespace
       WHERE s.nspname = ${sql.options.connection.search_path}
-      ${ignoreMigrationTables ? sql`AND c.relname NOT LIKE 'pgmigrations%'` : sql``}
+      ${ignoreMigrationTables ? sql`AND c.relname NOT LIKE '${tableName}%'` : sql``}
     `;
     return result.count > 0 && result[0].count > 0;
   } catch (error: any) {

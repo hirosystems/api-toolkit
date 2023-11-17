@@ -6,7 +6,7 @@
   "typings": "./dist/index.d.ts",
   "scripts": {
     "build": "rimraf ./dist && tsc --project tsconfig.build.json && copyfiles -u 1 ./src/server-version/*.mjs ./dist",
-    "test": "jest",
+    "test": "jest --runInBand",
     "lint:eslint": "eslint . --ext .js,.jsx,.ts,.tsx -f unix",
     "lint:prettier": "prettier --check src/**/*.ts",
     "testenv:run": "docker-compose -f docker/docker-compose.dev.postgres.yml up",
