@@ -111,7 +111,7 @@ export async function databaseHasData(
       FROM pg_class c
       JOIN pg_namespace s ON s.oid = c.relnamespace
       WHERE s.nspname = ${sql.options.connection.search_path}
-      ${ignoreMigrationTables ? sql`AND c.relname NOT LIKE '${tableName}%'` : sql``}
+      ${ignoreMigrationTables ? sql`AND c.relname NOT LIKE ${tableName}::text || '%'` : sql``}
     `;
     return result.count > 0 && result[0].count > 0;
   } catch (error: any) {
