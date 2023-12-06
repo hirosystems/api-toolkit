@@ -1,3 +1,10 @@
+## [1.3.3](https://github.com/hirosystems/api-toolkit/compare/v1.3.2...v1.3.3) (2023-12-06)
+
+
+### Bug Fixes
+
+* cast table name explicitly when checking for DB data ([#18](https://github.com/hirosystems/api-toolkit/issues/18)) ([2296ff3](https://github.com/hirosystems/api-toolkit/commit/2296ff373ca0fc8e04b4d3e37a0a59307097b10e))
+
 ## [1.3.2](https://github.com/hirosystems/api-toolkit/compare/v1.3.1...v1.3.2) (2023-11-17)
 
 
