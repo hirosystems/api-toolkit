@@ -1,3 +1,10 @@
+## [1.4.0](https://github.com/hirosystems/api-toolkit/compare/v1.3.3...v1.4.0) (2024-02-21)
+
+
+### Features
+
+* expose graceful shutdown method ([#19](https://github.com/hirosystems/api-toolkit/issues/19)) ([4730205](https://github.com/hirosystems/api-toolkit/commit/4730205c22e2d747c4cc24ffdcbe5bf7889f223a))
+
 ## [1.3.3](https://github.com/hirosystems/api-toolkit/compare/v1.3.2...v1.3.3) (2023-12-06)
 
 
