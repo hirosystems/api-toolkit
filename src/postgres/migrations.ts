@@ -1,5 +1,5 @@
 import PgMigrate from 'node-pg-migrate';
-import { MigrationDirection } from 'node-pg-migrate/dist/types';
+import { Logger as PgMigrateLogger, MigrationDirection } from 'node-pg-migrate/dist/types';
 import { logger } from '../logger';
 import { PgConnectionArgs, connectPostgres, standardizedConnectionArgs } from './connection';
 import { isDevEnv, isTestEnv } from '../helpers/values';
@@ -11,6 +11,8 @@ export interface MigrationOptions {
   logMigrations?: boolean;
   /** Name of the table used for migrations. Defaults to `pgmigrations`. */
   migrationsTable?: string;
+  /** Custom logging configuration */
+  logger?: PgMigrateLogger;
 }
 
 /**
@@ -50,7 +52,7 @@ export async function runMigrations(
           },
     migrationsTable: opts?.migrationsTable ?? 'pgmigrations',
     schema: typeof args === 'string' ? 'public' : args.schema,
-    logger: {
+    logger: opts?.logger ?? {
       info: msg => (opts?.logMigrations === true ? logger.info(msg) : {}),
       warn: msg => logger.warn(msg),
       error: msg => logger.error(msg),
