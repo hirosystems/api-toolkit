@@ -1,3 +1,10 @@
+## [1.5.0](https://github.com/hirosystems/api-toolkit/compare/v1.4.0...v1.5.0) (2024-04-12)
+
+
+### Features
+
+* option to configure pg migration logging ([#20](https://github.com/hirosystems/api-toolkit/issues/20)) ([e99bfbb](https://github.com/hirosystems/api-toolkit/commit/e99bfbb316f7d3d097bd922013f2e14fef9739f3))
+
 ## [1.4.0](https://github.com/hirosystems/api-toolkit/compare/v1.3.3...v1.4.0) (2024-02-21)
 
 
