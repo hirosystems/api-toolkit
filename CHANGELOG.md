@@ -1,3 +1,10 @@
+## [1.6.0](https://github.com/hirosystems/api-toolkit/compare/v1.5.0...v1.6.0) (2024-06-28)
+
+
+### Features
+
+* add fastify cache and schema helpers ([#22](https://github.com/hirosystems/api-toolkit/issues/22)) ([49aa9e6](https://github.com/hirosystems/api-toolkit/commit/49aa9e69c595490cc88a4044245bf0a00313734a))
+
 ## [1.5.0](https://github.com/hirosystems/api-toolkit/compare/v1.4.0...v1.5.0) (2024-04-12)
 
 
