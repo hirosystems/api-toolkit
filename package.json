@@ -62,6 +62,7 @@
     "@fastify/cors": "^8.0.0",
     "@fastify/swagger": "^8.3.1",
     "@fastify/type-provider-typebox": "^3.2.0",
+    "@sinclair/typebox": "^0.28.20",
     "fastify": "^4.3.0",
     "fastify-metrics": "^10.2.0",
     "node-pg-migrate": "^6.2.2",
