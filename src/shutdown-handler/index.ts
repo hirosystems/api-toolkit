@@ -15,7 +15,10 @@ const shutdownConfigs: ShutdownConfig[] = [];
 
 let isShuttingDown = false;
 
-async function startShutdown() {
+/**
+ * Start a graceful API shutdown.
+ */
+export async function shutdown(): Promise<void> {
   if (isShuttingDown) {
     return;
   }
@@ -67,26 +70,30 @@ function registerShutdownSignals() {
   SHUTDOWN_SIGNALS.forEach(sig => {
     process.once(sig, () => {
       logger.info(`Shutting down... received signal: ${sig}`);
-      void startShutdown();
+      void shutdown();
     });
   });
   process.once('unhandledRejection', error => {
     logger.error(error, 'unhandledRejection');
     logger.error('Shutting down... received unhandledRejection.');
-    void startShutdown();
+    void shutdown();
   });
   process.once('uncaughtException', error => {
     logger.error(error, 'uncaughtException');
     logger.error('Shutting down... received uncaughtException.');
-    void startShutdown();
+    void shutdown();
   });
   process.once('beforeExit', () => {
     logger.error('Shutting down... received beforeExit.');
-    void startShutdown();
+    void shutdown();
   });
 }
 
-export function registerShutdownConfig(...configs: ShutdownConfig[]) {
+/**
+ * Register shutdown handlers for different API components.
+ * @param configs - Array of shutdown configurations
+ */
+export function registerShutdownConfig(...configs: ShutdownConfig[]): void {
   registerShutdownSignals();
   shutdownConfigs.push(...configs);
 }

@@ -1,23 +1,32 @@
 import PgMigrate from 'node-pg-migrate';
-import { MigrationDirection } from 'node-pg-migrate/dist/types';
+import { Logger as PgMigrateLogger, MigrationDirection } from 'node-pg-migrate/dist/types';
 import { logger } from '../logger';
 import { PgConnectionArgs, connectPostgres, standardizedConnectionArgs } from './connection';
 import { isDevEnv, isTestEnv } from '../helpers/values';
+
+export interface MigrationOptions {
+  /** Bypass the NODE_ENV check when performing a "down" migration which irreversibly drops data. */
+  dangerousAllowDataLoss?: boolean;
+  /** Log all applied migrations */
+  logMigrations?: boolean;
+  /** Name of the table used for migrations. Defaults to `pgmigrations`. */
+  migrationsTable?: string;
+  /** Custom logging configuration */
+  logger?: PgMigrateLogger;
+}
 
 /**
  * Run migrations in one direction.
  * @param dir - Migrations directory
  * @param direction - Migration direction (`'down'` or `'up'`)
  * @param connectionArgs - Postgres connection args
+ * @param opts - Migration options
  */
 export async function runMigrations(
   dir: string,
   direction: MigrationDirection,
   connectionArgs?: PgConnectionArgs,
-  opts?: {
-    // Bypass the NODE_ENV check when performing a "down" migration which irreversibly drops data.
-    dangerousAllowDataLoss?: boolean;
-  }
+  opts?: MigrationOptions
 ) {
   if (!opts?.dangerousAllowDataLoss && direction !== 'up' && !isTestEnv && !isDevEnv) {
     throw new Error(
@@ -41,9 +50,10 @@ export async function runMigrations(
             password: args.password,
             database: args.database,
           },
-    migrationsTable: 'pgmigrations',
-    logger: {
-      info: _msg => {},
+    migrationsTable: opts?.migrationsTable ?? 'pgmigrations',
+    schema: typeof args === 'string' ? 'public' : args.schema,
+    logger: opts?.logger ?? {
+      info: msg => (opts?.logMigrations === true ? logger.info(msg) : {}),
       warn: msg => logger.warn(msg),
       error: msg => logger.error(msg),
     },
@@ -54,24 +64,27 @@ export async function runMigrations(
  * Cycle migrations down and up.
  * @param dir - Migrations directory
  * @param connectionArgs - Postgres connection args
+ * @param opts - Migration options
  */
 export async function cycleMigrations(
   dir: string,
   connectionArgs?: PgConnectionArgs,
-  opts?: {
-    // Bypass the NODE_ENV check when performing a "down" migration which irreversibly drops data.
-    dangerousAllowDataLoss?: boolean;
+  opts?: MigrationOptions & {
+    /** Validates if the database was cleared completely after all `down` migrations are done */
     checkForEmptyData?: boolean;
   }
 ) {
-  await runMigrations(dir, 'down', connectionArgs);
+  await runMigrations(dir, 'down', connectionArgs, opts);
   if (
     opts?.checkForEmptyData &&
-    (await databaseHasData(connectionArgs, { ignoreMigrationTables: true }))
+    (await databaseHasData(connectionArgs, {
+      ignoreMigrationTables: true,
+      migrationsTable: opts.migrationsTable,
+    }))
   ) {
     throw new Error('Migration down process did not completely remove DB tables');
   }
-  await runMigrations(dir, 'up', connectionArgs);
+  await runMigrations(dir, 'up', connectionArgs, opts);
 }
 
 /**
@@ -85,6 +98,7 @@ export async function databaseHasData(
   connectionArgs?: PgConnectionArgs,
   opts?: {
     ignoreMigrationTables?: boolean;
+    migrationsTable?: string;
   }
 ): Promise<boolean> {
   const sql = await connectPostgres({
@@ -93,12 +107,13 @@ export async function databaseHasData(
   });
   try {
     const ignoreMigrationTables = opts?.ignoreMigrationTables ?? false;
+    const tableName = opts?.migrationsTable ?? 'pgmigrations';
     const result = await sql<{ count: number }[]>`
       SELECT COUNT(*)
       FROM pg_class c
       JOIN pg_namespace s ON s.oid = c.relnamespace
       WHERE s.nspname = ${sql.options.connection.search_path}
-      ${ignoreMigrationTables ? sql`AND c.relname NOT LIKE 'pgmigrations%'` : sql``}
+      ${ignoreMigrationTables ? sql`AND c.relname NOT LIKE ${tableName}::text || '%'` : sql``}
     `;
     return result.count > 0 && result[0].count > 0;
   } catch (error: any) {
