@@ -43,7 +43,7 @@ export function parseBoolean(val: string | undefined | null): boolean {
     case 'no':
       return false;
     default:
-      throw new Error(`Cannot parse boolean from "${val}"`);
+      throw new Error(`Cannot parse boolean`);
   }
 }
 
@@ -64,10 +64,10 @@ export function hexToBuffer(hex: string): Buffer {
     return Buffer.alloc(0);
   }
   if (!hex.startsWith('0x')) {
-    throw new Error(`Hex string is missing the "0x" prefix: "${hex}"`);
+    throw new Error(`Hex string is missing the "0x" prefix`);
   }
   if (hex.length % 2 !== 0) {
-    throw new Error(`Hex string is an odd number of digits: ${hex}`);
+    throw new Error(`Hex string is an odd number of digits`);
   }
   return Buffer.from(hex.substring(2), 'hex');
 }
@@ -82,10 +82,10 @@ export function coerceToBuffer(hex: string | Buffer | ArrayBufferView): Buffer {
       hex = hex.substring(2);
     }
     if (hex.length % 2 !== 0) {
-      throw new Error(`Hex string is an odd number of characters: ${hex}`);
+      throw new Error(`Hex string is an odd number of characters`);
     }
     if (!/^[0-9a-fA-F]*$/.test(hex)) {
-      throw new Error(`Hex string contains non-hexadecimal characters: ${hex}`);
+      throw new Error(`Hex string contains non-hexadecimal characters`);
     }
     return Buffer.from(hex, 'hex');
   } else if (Buffer.isBuffer(hex)) {
