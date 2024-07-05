@@ -1,3 +1,10 @@
+## [1.6.2](https://github.com/hirosystems/api-toolkit/compare/v1.6.1...v1.6.2) (2024-07-05)
+
+
+### Bug Fixes
+
+* remove input from error messages ([68e4bd4](https://github.com/hirosystems/api-toolkit/commit/68e4bd461fa4b270929fef5979c87dd83940a94d))
+
 ## [1.6.0](https://github.com/hirosystems/api-toolkit/compare/v1.5.0...v1.6.0) (2024-06-28)
 
 
