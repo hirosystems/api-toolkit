@@ -45,8 +45,9 @@ gracefully on unhandled exceptions or interrupt signals.
 
 ### CPU Profiler
 
-* Fastify server that controls a CPU profiler capable of generating `cpuprofile` snapshot files for
-  memory usage analysis.
+* Fastify server that controls a profiler capable of generating:
+    * `.cpuprofile` files for CPU usage analysis
+    * `.heapsnapshot` files for memory usage analysis
 
 ### Logger
 

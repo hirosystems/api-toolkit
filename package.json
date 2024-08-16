@@ -67,7 +67,6 @@
     "fastify-metrics": "^10.2.0",
     "node-pg-migrate": "^6.2.2",
     "pino": "^8.11.0",
-    "postgres": "^3.3.4",
-    "stacks-encoding-native-js": "^1.0.0"
+    "postgres": "^3.3.4"
   }
 }

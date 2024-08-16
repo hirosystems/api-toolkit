@@ -4,7 +4,6 @@ import { Server } from 'http';
 import * as os from 'os';
 import * as path from 'path';
 import * as fs from 'fs';
-import { startProfiler, stopProfiler } from 'stacks-encoding-native-js';
 import { timeout } from '../helpers';
 import { pipeline } from 'node:stream/promises';
 import { logger, PINO_LOGGER_CONFIG } from '../logger';
@@ -73,8 +72,6 @@ const CpuProfiler: FastifyPluginCallback<Record<never, never>, Server, TypeBoxTy
     }
   );
 
-  let neonProfilerRunning: boolean = false;
-
   fastify.get(
     '/profile/cpu/start',
     {
@@ -103,48 +100,6 @@ const CpuProfiler: FastifyPluginCallback<Record<never, never>, Server, TypeBoxTy
       await res.send('CPU profiler started');
     }
   );
-
-  fastify.get('/profile/native/cpu/start', async (req, res) => {
-    if (neonProfilerRunning) {
-      await res.status(500).send('error: profiler already started');
-      return;
-    }
-    neonProfilerRunning = true;
-    try {
-      const startResponse = startProfiler();
-      logger.info(startResponse);
-      await res.send(startResponse);
-    } catch (error) {
-      logger.error(error);
-      await res.status(500).send(error);
-    }
-  });
-
-  fastify.get('/profile/native/cpu/stop', async (req, res) => {
-    if (!neonProfilerRunning) {
-      await res.status(500).send('error: no profiler running');
-      return;
-    }
-    neonProfilerRunning = false;
-    let profilerResults: Buffer;
-    try {
-      profilerResults = stopProfiler();
-    } catch (error: any) {
-      logger.error(error);
-      await res.status(500).send(error);
-      return;
-    }
-    const fileName = `profile-${Date.now()}.svg`;
-    await res
-      .status(200)
-      .headers({
-        'Cache-Control': 'no-store',
-        'Transfer-Encoding': 'chunked',
-        'Content-Disposition': `attachment; filename="${fileName}"`,
-        'Content-Type': 'image/svg+xml',
-      })
-      .send(profilerResults);
-  });
 
   fastify.get('/profile/cpu/stop', async (req, res) => {
     if (!existingSession) {
