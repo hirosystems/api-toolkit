@@ -9,9 +9,9 @@
     "test": "jest --runInBand",
     "lint:eslint": "eslint . --ext .js,.jsx,.ts,.tsx -f unix",
     "lint:prettier": "prettier --check src/**/*.ts",
-    "testenv:run": "docker-compose -f docker/docker-compose.dev.postgres.yml up",
-    "testenv:stop": "docker-compose -f docker/docker-compose.dev.postgres.yml down -v -t 0",
-    "testenv:logs": "docker-compose -f docker/docker-compose.dev.postgres.yml logs -t -f"
+    "testenv:run": "docker compose -f docker/docker-compose.dev.postgres.yml up",
+    "testenv:stop": "docker compose -f docker/docker-compose.dev.postgres.yml down -v -t 0",
+    "testenv:logs": "docker compose -f docker/docker-compose.dev.postgres.yml logs -t -f"
   },
   "bin": {
     "api-toolkit-git-info": "./bin/api-toolkit-git-info.js"
