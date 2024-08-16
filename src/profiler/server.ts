@@ -11,6 +11,9 @@ import Fastify, { FastifyInstance, FastifyPluginCallback, FastifyReply } from 'f
 import { Type, TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { initCpuProfiling, initHeapSnapshot, ProfilerInstance } from './inspector-util';
 
+const DurationSchema = Type.Number({ minimum: 0 });
+const SamplingIntervalSchema = Type.Optional(Type.Number({ minimum: 0 }));
+
 const CpuProfiler: FastifyPluginCallback<Record<never, never>, Server, TypeBoxTypeProvider> = (
   fastify,
   options,
@@ -23,8 +26,8 @@ const CpuProfiler: FastifyPluginCallback<Record<never, never>, Server, TypeBoxTy
     {
       schema: {
         querystring: Type.Object({
-          duration: Type.Number({ minimum: 0 }),
-          sampling_interval: Type.Optional(Type.Integer({ minimum: 0 })),
+          duration: DurationSchema,
+          sampling_interval: SamplingIntervalSchema,
         }),
       },
     },
@@ -76,7 +79,7 @@ const CpuProfiler: FastifyPluginCallback<Record<never, never>, Server, TypeBoxTy
     {
       schema: {
         querystring: Type.Object({
-          sampling_interval: Type.Optional(Type.Integer({ minimum: 0 })),
+          sampling_interval: SamplingIntervalSchema,
         }),
       },
     },

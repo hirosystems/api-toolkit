@@ -43,6 +43,11 @@ Please see each tool's source directory for additional documentation
 * Node.js signal handlers that provide a way to shut down long-running application components
 gracefully on unhandled exceptions or interrupt signals.
 
+### CPU Profiler
+
+* Fastify server that controls a CPU profiler capable of generating `cpuprofile` snapshot files for
+  memory usage analysis.
+
 ### Logger
 
 * Standardized logger configuration using [pino](https://github.com/pinojs/pino)
