@@ -1,3 +1,10 @@
+## [1.7.0](https://github.com/hirosystems/api-toolkit/compare/v1.6.2...v1.7.0) (2024-08-16)
+
+
+### Features
+
+* add fastify cpu profiler server ([#28](https://github.com/hirosystems/api-toolkit/issues/28)) ([b224e06](https://github.com/hirosystems/api-toolkit/commit/b224e0673f09b71d52b8506f487c91aa60afdce5))
+
 ## [1.6.2](https://github.com/hirosystems/api-toolkit/compare/v1.6.1...v1.6.2) (2024-07-05)
 
 
