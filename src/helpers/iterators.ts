@@ -1,3 +1,5 @@
+import * as stream from 'stream';
+import * as util from 'util';
 import { logger } from '../logger';
 import { isDevEnv } from './values';
 
@@ -76,3 +78,6 @@ export async function* asyncIterableToGenerator<T>(iter: AsyncIterable<T>) {
     yield entry;
   }
 }
+
+/** Promisify a pipeline */
+export const pipelineAsync = util.promisify(stream.pipeline);
