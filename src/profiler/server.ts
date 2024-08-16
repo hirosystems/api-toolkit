@@ -5,7 +5,8 @@ import * as os from 'os';
 import * as path from 'path';
 import * as fs from 'fs';
 import { startProfiler, stopProfiler } from 'stacks-encoding-native-js';
-import { pipelineAsync, timeout } from '../helpers';
+import { timeout } from '../helpers';
+import { pipeline } from 'node:stream/promises';
 import { logger, PINO_LOGGER_CONFIG } from '../logger';
 import Fastify, { FastifyInstance, FastifyPluginCallback, FastifyReply } from 'fastify';
 import { Type, TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
@@ -205,7 +206,7 @@ const CpuProfiler: FastifyPluginCallback<Record<never, never>, Server, TypeBoxTy
         'Content-Disposition': `attachment; filename="${filename}"`,
         'Content-Type': 'application/json; charset=utf-8',
       });
-      await pipelineAsync(fs.createReadStream(tmpFile), res.raw);
+      await pipeline(fs.createReadStream(tmpFile), res.raw);
     } finally {
       const session = existingSession;
       existingSession = undefined;
