@@ -1,3 +1,10 @@
+## [1.7.1](https://github.com/hirosystems/api-toolkit/compare/v1.7.0...v1.7.1) (2024-08-19)
+
+
+### Bug Fixes
+
+* heap snapshot file download ([#30](https://github.com/hirosystems/api-toolkit/issues/30)) ([800982b](https://github.com/hirosystems/api-toolkit/commit/800982b23393946af6c3017063506be1bb4e46df))
+
 ## [1.7.0](https://github.com/hirosystems/api-toolkit/compare/v1.6.2...v1.7.0) (2024-08-16)
 
 
