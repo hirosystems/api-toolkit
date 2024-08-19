@@ -155,13 +155,13 @@ const CpuProfiler: FastifyPluginCallback<Record<never, never>, Server, TypeBoxTy
       logger.info(
         `[HeapProfiler] Completed, total snapshot byte size: ${result.totalSnapshotByteSize}`
       );
+      await pipeline(fs.createReadStream(tmpFile), res.raw);
       await res.headers({
         'Cache-Control': 'no-store',
         'Transfer-Encoding': 'chunked',
         'Content-Disposition': `attachment; filename="${filename}"`,
         'Content-Type': 'application/json; charset=utf-8',
       });
-      await pipeline(fs.createReadStream(tmpFile), res.raw);
     } finally {
       const session = existingSession;
       existingSession = undefined;
