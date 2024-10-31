@@ -1,22 +1,24 @@
+import { addAbortListener } from 'node:events';
+
 /**
  * Wait a set amount of milliseconds or until the timer is aborted.
  * @param ms - Number of milliseconds to wait
- * @param abortController - Abort controller
+ * @param abort - Abort controller
  * @returns Promise
  */
-export function timeout(ms: number, abortController?: AbortController): Promise<void> {
+export function timeout(ms: number, abort?: AbortController | AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
+    const signal = abort && 'signal' in abort ? abort.signal : abort;
+    if (signal?.aborted) return reject(signal.reason);
+    const disposable = signal ? addAbortListener(signal, onAbort) : undefined;
     const timeout = setTimeout(() => {
+      disposable?.[Symbol.dispose ?? (Symbol.for('nodejs.dispose') as typeof Symbol.dispose)]();
       resolve();
     }, ms);
-    abortController?.signal.addEventListener(
-      'abort',
-      () => {
-        clearTimeout(timeout);
-        reject(new Error(`Timeout aborted`));
-      },
-      { once: true }
-    );
+    function onAbort() {
+      clearTimeout(timeout);
+      reject(signal?.reason);
+    }
   });
 }
 
