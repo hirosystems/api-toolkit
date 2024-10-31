@@ -1,3 +1,10 @@
+## [1.7.2](https://github.com/hirosystems/api-toolkit/compare/v1.7.1...v1.7.2) (2024-10-31)
+
+
+### Bug Fixes
+
+* memleak in timeout w/ abort signal ([#32](https://github.com/hirosystems/api-toolkit/issues/32)) ([d56a9ad](https://github.com/hirosystems/api-toolkit/commit/d56a9ad24f9850be3c372769b9486b71a85f4ae3))
+
 ## [1.7.1](https://github.com/hirosystems/api-toolkit/compare/v1.7.0...v1.7.1) (2024-08-19)
 
 
