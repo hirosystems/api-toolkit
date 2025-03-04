@@ -1,3 +1,10 @@
+## [1.7.3](https://github.com/hirosystems/api-toolkit/compare/v1.7.2...v1.7.3) (2025-03-04)
+
+
+### Bug Fixes
+
+* use the built-in abortable async setTimeout from `node:timers/promises` rather than implementing ourselves ([#33](https://github.com/hirosystems/api-toolkit/issues/33)) ([954e7ea](https://github.com/hirosystems/api-toolkit/commit/954e7eaf47f747a6666e3d1884cf353ab0086f32))
+
 ## [1.7.2](https://github.com/hirosystems/api-toolkit/compare/v1.7.1...v1.7.2) (2024-10-31)
 
 
