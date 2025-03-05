@@ -1,3 +1,10 @@
+## [1.7.4](https://github.com/hirosystems/api-toolkit/compare/v1.7.3...v1.7.4) (2025-03-05)
+
+
+### Bug Fixes
+
+* isFinished never set on `waiter` ([#35](https://github.com/hirosystems/api-toolkit/issues/35)) ([9c1d2b3](https://github.com/hirosystems/api-toolkit/commit/9c1d2b3dcd6519e46324a56df83da2ebb6cc53e5))
+
 ## [1.7.3](https://github.com/hirosystems/api-toolkit/compare/v1.7.2...v1.7.3) (2025-03-04)
 
 
