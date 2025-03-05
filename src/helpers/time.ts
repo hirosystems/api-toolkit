@@ -121,7 +121,7 @@ export function waiter<T = void>(): Waiter<T> {
   });
   const completer = {
     finish: (result: T) => {
-      completer.isFinished = true;
+      void Object.assign(promise, { isFinished: true });
       resolveFn(result);
     },
     isFinished: false,

@@ -1,5 +1,5 @@
 import * as events from 'node:events';
-import { timeout } from '../time';
+import { timeout, waiter } from '../time';
 
 describe('Helper tests', () => {
   test('timeout function should not cause memory leak by accumulating abort listeners on abort', async () => {
@@ -48,5 +48,12 @@ describe('Helper tests', () => {
 
     // Final check to confirm listeners are cleaned up
     expect(countListeners()).toBe(0);
+  });
+
+  test('waiter is finished', async () => {
+    const myWaiter = waiter();
+    myWaiter.finish();
+    await myWaiter;
+    expect(myWaiter.isFinished).toBe(true);
   });
 });
