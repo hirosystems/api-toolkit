@@ -41,6 +41,8 @@ export function isPgConnectionError(error: any): string | false {
       return 'Postgres connection closed due to administrator command';
     } else if (msg.includes('password authentication failed')) {
       return 'Postgres authentication failed';
+    } else if (msg.includes('database system is not yet accepting connections')) {
+      return 'Postgres not yet accepting connections';
     }
   }
   return false;
