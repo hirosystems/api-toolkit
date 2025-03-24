@@ -1,3 +1,10 @@
+## [1.7.5](https://github.com/hirosystems/api-toolkit/compare/v1.7.4...v1.7.5) (2025-03-24)
+
+
+### Bug Fixes
+
+* missing condition for `PostgresError: the database system is not yet accepting connections` ([#36](https://github.com/hirosystems/api-toolkit/issues/36)) ([6423000](https://github.com/hirosystems/api-toolkit/commit/6423000fe9d3cb9424179076ae50e487d7facf38))
+
 ## [1.7.4](https://github.com/hirosystems/api-toolkit/compare/v1.7.3...v1.7.4) (2025-03-05)
 
 
