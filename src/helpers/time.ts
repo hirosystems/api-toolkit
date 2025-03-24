@@ -105,26 +105,43 @@ export function stopwatch(): Stopwatch {
   return result;
 }
 
-export type Waiter<T> = Promise<T> & {
+export type Waiter<T = void, E = Error> = Promise<T> & {
+  /** Alias for `resolve` */
   finish: (result: T) => void;
+  resolve: (result: T) => void;
+  reject: (error: E) => void;
+  /** True if the promise is resolved or rejected */
   isFinished: boolean;
+  /** True only if the promise is resolved */
+  isResolved: boolean;
+  /** True only if the promise is rejected */
+  isRejected: boolean;
 };
 
 /**
- * Creates a `Waiter` promise that can be resolved at a later time with a return value.
+ * Creates a `Waiter` promise that can be resolved or rejected at a later time.
  * @returns Waiter
  */
-export function waiter<T = void>(): Waiter<T> {
+export function waiter<T = void, E = Error>(): Waiter<T, E> {
   let resolveFn: (result: T) => void;
-  const promise = new Promise<T>(resolve => {
+  let rejectFn: (error: E) => void;
+  const promise = new Promise<T>((resolve, reject) => {
     resolveFn = resolve;
+    rejectFn = reject;
   });
   const completer = {
-    finish: (result: T) => {
-      void Object.assign(promise, { isFinished: true });
+    finish: (result: T) => completer.resolve(result),
+    resolve: (result: T) => {
+      void Object.assign(promise, { isFinished: true, isResolved: true });
       resolveFn(result);
     },
+    reject: (error: E) => {
+      void Object.assign(promise, { isFinished: true, isRejected: true });
+      rejectFn(error);
+    },
     isFinished: false,
+    isResolved: false,
+    isRejected: false,
   };
   return Object.assign(promise, completer);
 }
