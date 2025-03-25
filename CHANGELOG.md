@@ -1,3 +1,10 @@
+## [1.8.0](https://github.com/hirosystems/api-toolkit/compare/v1.7.5...v1.8.0) (2025-03-25)
+
+
+### Features
+
+* add `reject` function to `waiter` ([#38](https://github.com/hirosystems/api-toolkit/issues/38)) ([8c56e1a](https://github.com/hirosystems/api-toolkit/commit/8c56e1aabbac026ba18ca3f8792394bd654aa5e6))
+
 ## [1.7.5](https://github.com/hirosystems/api-toolkit/compare/v1.7.4...v1.7.5) (2025-03-24)
 
 
