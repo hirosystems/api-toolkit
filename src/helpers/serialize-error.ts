@@ -97,12 +97,29 @@ export type SerializedError = {
   name: string;
   message: string;
   stack: string;
-  code?: string | number;
-  cause?: string;
   [key: string]: any;
 };
 
+export function isErrorLike(value: unknown): value is Error & { stack: string } {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'name' in value &&
+    'message' in value &&
+    'stack' in value &&
+    typeof (value as Error).name === 'string' &&
+    typeof (value as Error).message === 'string' &&
+    typeof (value as Error).stack === 'string'
+  );
+}
+
 export function serializeError(subject: Error): SerializedError {
+  if (!isErrorLike(subject)) {
+    // If the subject is not an error, for example `throw "boom", then we throw.
+    // This function should only be passed error objects, callers can use `isErrorLike`.
+    throw new TypeError('Failed to serialize error, expected an error object');
+  }
+
   const data: Record<string, any> = {
     name: 'Error',
     message: '',
@@ -114,8 +131,11 @@ export function serializeError(subject: Error): SerializedError {
       continue;
     }
     let value = (subject as any)[prop.name];
+    // TODO: if value instanceof Error then recursively serializeError
     if (prop.serialize) {
       value = prop.serialize(value);
+    } else {
+      value = deepSerialize(value);
     }
     data[prop.name] = value;
   }
@@ -123,7 +143,7 @@ export function serializeError(subject: Error): SerializedError {
   // Include any other enumerable own properties
   for (const key of Object.keys(subject)) {
     if (!(key in data)) {
-      data[key] = (subject as any)[key];
+      data[key] = deepSerialize((subject as any)[key]);
     }
   }
 
@@ -136,14 +156,31 @@ export function serializeError(subject: Error): SerializedError {
 }
 
 export function deserializeError(subject: SerializedError): Error {
-  const con = errorConstructors.get(subject.name) ?? Error;
+  if (!isErrorLike(subject)) {
+    // If the subject is not an error, for example `throw "boom", then we throw.
+    // This function should only be passed error objects, callers can use `isErrorLike`.
+    throw new TypeError('Failed to desserialize error, expected an error object');
+  }
+
+  let con = errorConstructors.get(subject.name);
+  if (!con) {
+    // If the constructor is not found, use the generic Error constructor
+    con = Error;
+    console.error(
+      `Error constructor "${subject.name}" not found during worker error deserialization, using generic Error constructor`
+    );
+  }
   const output = Object.create(con.prototype) as Error;
 
   for (const prop of commonProperties) {
     if (!(prop.name in subject)) continue;
 
-    let value = subject[prop.name];
-    if (prop.deserialize) value = prop.deserialize(value);
+    let value = (subject as any)[prop.name];
+    if (prop.deserialize) {
+      value = prop.deserialize(value);
+    } else {
+      value = deepDeserialize(value);
+    }
 
     Object.defineProperty(output, prop.name, {
       ...prop.descriptor,
@@ -154,10 +191,39 @@ export function deserializeError(subject: SerializedError): Error {
   // Add any other properties (custom props not in commonProperties)
   for (const key of Object.keys(subject)) {
     if (!commonProperties.some(p => p.name === key)) {
-      (output as any)[key] = subject[key];
-      Object.assign(output, { [key]: subject[key] });
+      (output as any)[key] = deepDeserialize((subject as any)[key]);
     }
   }
 
   return output;
+}
+
+function deepSerialize(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(deepSerialize);
+  } else if (isErrorLike(value)) {
+    return serializeError(value);
+  } else if (value && typeof value === 'object') {
+    const result: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      result[k] = deepSerialize(v);
+    }
+    return result;
+  }
+  return value;
+}
+
+function deepDeserialize(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(deepDeserialize);
+  } else if (isErrorLike(value)) {
+    return deserializeError(value);
+  } else if (value && typeof value === 'object') {
+    const result: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      result[k] = deepDeserialize(v);
+    }
+    return result;
+  }
+  return value;
 }

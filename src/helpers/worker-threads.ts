@@ -1,19 +1,19 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { isMainThread, parentPort, workerData, Worker, WorkerOptions } from 'node:worker_threads';
-import { cpus } from 'node:os';
+import * as WorkerThreads from 'node:worker_threads';
+import * as os from 'node:os';
+import * as path from 'node:path';
 import { EventEmitter } from 'node:events';
-import { deserializeError, SerializedError, serializeError } from './serialize-error';
 import { waiter, Waiter } from './time';
+import { deserializeError, isErrorLike, serializeError } from './serialize-error';
 
-type WorkerPoolModuleInterface<TReq, TResp> =
+type WorkerPoolModuleInterface<TArgs extends unknown[], TResp> =
   | {
       workerModule: NodeJS.Module;
-      processTask: (req: TReq) => Promise<TResp> | TResp;
+      processTask: (...args: TArgs) => Promise<TResp> | TResp;
     }
   | {
       default: {
         workerModule: NodeJS.Module;
-        processTask: (req: TReq) => Promise<TResp> | TResp;
+        processTask: (...args: TArgs) => Promise<TResp> | TResp;
       };
     };
 
@@ -21,12 +21,12 @@ type WorkerDataInterface = {
   workerFile: string;
 };
 
-type WorkerReqMsg<TReq> = {
+type WorkerReqMsg<TArgs extends unknown[]> = {
   msgId: number;
-  req: TReq;
+  req: TArgs;
 };
 
-type WorkerRespMsg<TResp, TErr = SerializedError> = {
+type WorkerRespMsg<TResp, TErr> = {
   msgId: number;
 } & (
   | {
@@ -62,28 +62,39 @@ function getMaybePromiseResult<T>(
     cb({ err });
   }
 }
+export class WorkerManager<TArgs extends unknown[], TResp> {
+  private readonly workers = new Set<WorkerThreads.Worker>();
+  private readonly idleWorkers: WorkerThreads.Worker[] = [];
 
-export class WorkerManager<TReq, TResp> {
-  private readonly workers = new Set<Worker>();
-  private readonly idleWorkers: Worker[] = [];
-
-  private readonly jobQueue: WorkerReqMsg<TReq>[] = [];
+  private readonly jobQueue: WorkerReqMsg<TArgs>[] = [];
   private readonly msgRequests: Map<number, Waiter<TResp>> = new Map();
   private lastMsgId = 0;
 
-  private readonly workerCount: number;
-  private readonly workerFile: string;
+  readonly workerCount: number;
+  readonly workerFile: string;
 
-  private readonly events = new EventEmitter<{
+  readonly events = new EventEmitter<{
     workersReady: [];
   }>();
 
-  public static init<TReq, TResp>(
-    workerModule: WorkerPoolModuleInterface<TReq, TResp>,
+  get idleWorkerCount() {
+    return this.idleWorkers.length;
+  }
+
+  get busyWorkerCount() {
+    return this.workerCount - this.idleWorkers.length;
+  }
+
+  get queuedJobCount() {
+    return this.jobQueue.length;
+  }
+
+  public static init<TArgs extends unknown[], TResp>(
+    workerModule: WorkerPoolModuleInterface<TArgs, TResp>,
     opts: { workerCount?: number } = {}
   ) {
     const workerManager = new WorkerManager(workerModule, opts);
-    return new Promise<WorkerManager<TReq, TResp>>(resolve => {
+    return new Promise<WorkerManager<TArgs, TResp>>(resolve => {
       workerManager.events.once('workersReady', () => {
         resolve(workerManager);
       });
@@ -91,10 +102,10 @@ export class WorkerManager<TReq, TResp> {
   }
 
   constructor(
-    workerModule: WorkerPoolModuleInterface<TReq, TResp>,
+    workerModule: WorkerPoolModuleInterface<TArgs, TResp>,
     opts: { workerCount?: number } = {}
   ) {
-    if (!isMainThread) {
+    if (!WorkerThreads.isMainThread) {
       throw new Error(`${this.constructor.name} must be instantiated in the main thread`);
     }
 
@@ -103,44 +114,44 @@ export class WorkerManager<TReq, TResp> {
     } else {
       this.workerFile = workerModule.workerModule.filename;
     }
-    this.workerCount = opts.workerCount ?? cpus().length;
+    this.workerCount = opts.workerCount ?? os.cpus().length;
     this.createWorkerPool();
   }
 
-  exec(req: TReq): Promise<TResp> {
+  exec(...args: TArgs): Promise<TResp> {
     if (this.lastMsgId >= Number.MAX_SAFE_INTEGER) {
       this.lastMsgId = 0;
     }
     const msgId = this.lastMsgId++;
     const replyWaiter = waiter<TResp>();
     this.msgRequests.set(msgId, replyWaiter);
-    const reqMsg: WorkerReqMsg<TReq> = {
+    const reqMsg: WorkerReqMsg<TArgs> = {
       msgId,
-      req,
+      req: args,
     };
     this.jobQueue.push(reqMsg);
     this.assignJobs();
     return replyWaiter;
   }
 
-  private createWorkerPool() {
+  createWorkerPool() {
     let workersReady = 0;
     for (let i = 0; i < this.workerCount; i++) {
       const workerData: WorkerDataInterface = {
         workerFile: this.workerFile,
       };
-      const workerOpt: WorkerOptions = {
+      const workerOpt: WorkerThreads.WorkerOptions = {
         workerData,
       };
-      if (__filename.endsWith('.ts')) {
+      if (path.extname(__filename) === '.ts') {
         if (process.env.NODE_ENV !== 'test') {
-          console.error(
-            'Worker threads are being created with ts-node outside of a test environment.'
+          throw new Error(
+            'Worker threads are being created with ts-node outside of a test environment'
           );
         }
-        workerOpt.execArgv = ['-r', 'ts-node/register'];
+        workerOpt.execArgv = ['-r', 'ts-node/register/transpile-only'];
       }
-      const worker = new Worker(__filename, workerOpt);
+      const worker = new WorkerThreads.Worker(__filename, workerOpt);
       worker.unref();
       this.workers.add(worker);
       worker.on('error', err => {
@@ -149,32 +160,39 @@ export class WorkerManager<TReq, TResp> {
       worker.on('messageerror', err => {
         console.error(`Worker message error`, err);
       });
-      worker.on('message', (message: unknown) => {
-        if (message === 'ready') {
-          this.idleWorkers.push(worker);
-          this.assignJobs();
-          workersReady++;
-          if (workersReady === this.workerCount) {
-            this.events.emit('workersReady');
-          }
-        } else {
-          this.idleWorkers.push(worker);
-          this.assignJobs();
-          const msg = message as WorkerRespMsg<TResp>;
-          const replyWaiter = this.msgRequests.get(msg.msgId);
-          if (replyWaiter) {
-            if (msg.error) {
-              replyWaiter.reject(deserializeError(msg.error));
-            } else if (msg.resp) {
-              replyWaiter.resolve(msg.resp);
-            }
-            this.msgRequests.delete(msg.msgId);
-          } else {
-            console.error('Received unexpected message from worker', msg);
-          }
+      worker.once('message', (message: unknown) => {
+        if (message !== 'ready') {
+          throw new Error(`Unexpected first msg from worker thread: ${JSON.stringify(message)}`);
+        }
+        this.setupWorkerHandler(worker);
+        this.idleWorkers.push(worker);
+        this.assignJobs();
+        workersReady++;
+        if (workersReady === this.workerCount) {
+          this.events.emit('workersReady');
         }
       });
     }
+  }
+
+  private setupWorkerHandler(worker: WorkerThreads.Worker) {
+    worker.on('message', (message: unknown) => {
+      this.idleWorkers.push(worker);
+      this.assignJobs();
+      const msg = message as WorkerRespMsg<TResp, unknown>;
+      const replyWaiter = this.msgRequests.get(msg.msgId);
+      if (replyWaiter) {
+        if (msg.error) {
+          const error = isErrorLike(msg.error) ? deserializeError(msg.error) : msg.error;
+          replyWaiter.reject(error as Error);
+        } else if (msg.resp) {
+          replyWaiter.resolve(msg.resp);
+        }
+        this.msgRequests.delete(msg.msgId);
+      } else {
+        console.error('Received unexpected message from worker', msg);
+      }
+    });
   }
 
   private assignJobs() {
@@ -192,39 +210,41 @@ export class WorkerManager<TReq, TResp> {
   }
 }
 
-if (!isMainThread && (workerData as WorkerDataInterface)?.workerFile) {
-  const { workerFile } = workerData as WorkerDataInterface;
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const workerModule = require(workerFile) as WorkerPoolModuleInterface<unknown, unknown>;
-  let processTask: (req: unknown) => unknown;
-  if ('default' in workerModule) {
-    processTask = workerModule.default.processTask;
-  } else {
-    processTask = workerModule.processTask;
-  }
-  parentPort!.on('messageerror', err => {
+if (!WorkerThreads.isMainThread && (WorkerThreads.workerData as WorkerDataInterface)?.workerFile) {
+  const { workerFile } = WorkerThreads.workerData as WorkerDataInterface;
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  const workerModule = require(workerFile) as WorkerPoolModuleInterface<unknown[], unknown>;
+  const parentPort = WorkerThreads.parentPort as WorkerThreads.MessagePort;
+  const processTask =
+    'default' in workerModule ? workerModule.default.processTask : workerModule.processTask;
+  parentPort.on('messageerror', err => {
     console.error(`Worker thread message error`, err);
   });
-  parentPort!.on('message', (message: unknown) => {
-    const msg = message as WorkerReqMsg<unknown>;
+  parentPort.on('message', (message: unknown) => {
+    const msg = message as WorkerReqMsg<unknown[]>;
     getMaybePromiseResult(
-      () => processTask(msg.req),
+      () => processTask(...msg.req),
       result => {
-        if (result.ok) {
-          const reply: WorkerRespMsg<unknown> = {
-            msgId: msg.msgId,
-            resp: result.ok,
-          };
-          parentPort!.postMessage(reply);
-        } else {
-          const reply: WorkerRespMsg<unknown> = {
-            msgId: msg.msgId,
-            error: serializeError(result.err as Error),
-          };
-          parentPort!.postMessage(reply);
+        try {
+          let reply: WorkerRespMsg<unknown, unknown>;
+          if (result.ok) {
+            reply = {
+              msgId: msg.msgId,
+              resp: result.ok,
+            };
+          } else {
+            const error = isErrorLike(result.err) ? serializeError(result.err) : result.err;
+            reply = {
+              msgId: msg.msgId,
+              error,
+            };
+          }
+          parentPort.postMessage(reply);
+        } catch (err: unknown) {
+          console.error(`Critical bug in work task processing`, err);
         }
       }
     );
   });
-  parentPort!.postMessage('ready');
+  parentPort.postMessage('ready');
 }
