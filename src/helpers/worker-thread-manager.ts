@@ -3,30 +3,19 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { EventEmitter } from 'node:events';
 import { waiter, Waiter } from './time';
-import { deserializeError, isErrorLike, serializeError } from './serialize-error';
+import { deserializeError, isErrorLike } from './serialize-error';
+import { filename as workerThreadInitFilename } from './worker-thread-init';
 
-type WorkerPoolModuleInterface<TArgs extends unknown[], TResp> =
-  | {
-      workerModule: NodeJS.Module;
-      processTask: (...args: TArgs) => Promise<TResp> | TResp;
-    }
-  | {
-      default: {
-        workerModule: NodeJS.Module;
-        processTask: (...args: TArgs) => Promise<TResp> | TResp;
-      };
-    };
-
-type WorkerDataInterface = {
+export type WorkerDataInterface = {
   workerFile: string;
 };
 
-type WorkerReqMsg<TArgs extends unknown[]> = {
+export type WorkerReqMsg<TArgs extends unknown[]> = {
   msgId: number;
   req: TArgs;
 };
 
-type WorkerRespMsg<TResp, TErr> = {
+export type WorkerRespMsg<TResp, TErr> = {
   msgId: number;
 } & (
   | {
@@ -39,29 +28,17 @@ type WorkerRespMsg<TResp, TErr> = {
     }
 );
 
-/**
- * Invokes a function that may return a value or a promise, and passes the result
- * to a callback in a consistent format. Handles both synchronous and asynchronous cases,
- * ensuring type safety and avoiding unnecessary async transitions for sync functions.
- */
-function getMaybePromiseResult<T>(
-  fn: () => T | Promise<T>,
-  cb: (result: { ok: T; err?: null } | { ok?: null; err: unknown }) => void
-): void {
-  try {
-    const maybePromise = fn();
-    if (maybePromise instanceof Promise) {
-      maybePromise.then(
-        ok => cb({ ok }),
-        (err: unknown) => cb({ err })
-      );
-    } else {
-      cb({ ok: maybePromise });
+export type WorkerPoolModuleInterface<TArgs extends unknown[], TResp> =
+  | {
+      workerModule: NodeJS.Module;
+      processTask: (...args: TArgs) => Promise<TResp> | TResp;
     }
-  } catch (err: unknown) {
-    cb({ err });
-  }
-}
+  | {
+      default: {
+        workerModule: NodeJS.Module;
+        processTask: (...args: TArgs) => Promise<TResp> | TResp;
+      };
+    };
 
 export class WorkerThreadManager<TArgs extends unknown[], TResp> {
   private readonly workers = new Set<WorkerThreads.Worker>();
@@ -144,7 +121,7 @@ export class WorkerThreadManager<TArgs extends unknown[], TResp> {
       const workerOpt: WorkerThreads.WorkerOptions = {
         workerData,
       };
-      if (path.extname(__filename) === '.ts') {
+      if (path.extname(workerThreadInitFilename) === '.ts') {
         if (process.env.NODE_ENV !== 'test') {
           throw new Error(
             'Worker threads are being created with ts-node outside of a test environment'
@@ -152,7 +129,7 @@ export class WorkerThreadManager<TArgs extends unknown[], TResp> {
         }
         workerOpt.execArgv = ['-r', 'ts-node/register/transpile-only'];
       }
-      const worker = new WorkerThreads.Worker(__filename, workerOpt);
+      const worker = new WorkerThreads.Worker(workerThreadInitFilename, workerOpt);
       worker.unref();
       this.workers.add(worker);
       worker.on('error', err => {
@@ -209,43 +186,4 @@ export class WorkerThreadManager<TArgs extends unknown[], TResp> {
     await Promise.all([...this.workers].map(worker => worker.terminate()));
     this.workers.clear();
   }
-}
-
-if (!WorkerThreads.isMainThread && (WorkerThreads.workerData as WorkerDataInterface)?.workerFile) {
-  const { workerFile } = WorkerThreads.workerData as WorkerDataInterface;
-  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-  const workerModule = require(workerFile) as WorkerPoolModuleInterface<unknown[], unknown>;
-  const parentPort = WorkerThreads.parentPort as WorkerThreads.MessagePort;
-  const processTask =
-    'default' in workerModule ? workerModule.default.processTask : workerModule.processTask;
-  parentPort.on('messageerror', err => {
-    console.error(`Worker thread message error`, err);
-  });
-  parentPort.on('message', (message: unknown) => {
-    const msg = message as WorkerReqMsg<unknown[]>;
-    getMaybePromiseResult(
-      () => processTask(...msg.req),
-      result => {
-        try {
-          let reply: WorkerRespMsg<unknown, unknown>;
-          if (result.ok) {
-            reply = {
-              msgId: msg.msgId,
-              resp: result.ok,
-            };
-          } else {
-            const error = isErrorLike(result.err) ? serializeError(result.err) : result.err;
-            reply = {
-              msgId: msg.msgId,
-              error,
-            };
-          }
-          parentPort.postMessage(reply);
-        } catch (err: unknown) {
-          console.error(`Critical bug in work task processing`, err);
-        }
-      }
-    );
-  });
-  parentPort.postMessage('ready');
 }
