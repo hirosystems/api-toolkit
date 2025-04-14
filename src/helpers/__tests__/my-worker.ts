@@ -1,7 +1,6 @@
 /** Block the thread for `ms` milliseconds */
 function sleepSync(ms: number) {
-  const int32 = new Int32Array(new SharedArrayBuffer(4));
-  Atomics.wait(int32, 0, 0, ms);
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
 }
 
 export function processTask(req: number, cpuWaitTimeMs: number) {

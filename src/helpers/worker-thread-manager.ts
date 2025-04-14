@@ -1,7 +1,7 @@
 import * as WorkerThreads from 'node:worker_threads';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { EventEmitter } from 'node:events';
+import { EventEmitter, addAbortListener } from 'node:events';
 import { waiter, Waiter } from './time';
 import { deserializeError, isErrorLike } from './serialize-error';
 import { filename as workerThreadInitFilename } from './worker-thread-init';
@@ -51,6 +51,8 @@ export class WorkerThreadManager<TArgs extends unknown[], TResp> {
   readonly workerCount: number;
   readonly workerFile: string;
 
+  private readonly abortControlller = new AbortController();
+
   readonly events = new EventEmitter<{
     workersReady: [];
   }>();
@@ -97,6 +99,7 @@ export class WorkerThreadManager<TArgs extends unknown[], TResp> {
   }
 
   exec(...args: TArgs): Promise<TResp> {
+    this.abortControlller.signal.throwIfAborted();
     if (this.lastMsgId >= Number.MAX_SAFE_INTEGER) {
       this.lastMsgId = 0;
     }
@@ -151,6 +154,13 @@ export class WorkerThreadManager<TArgs extends unknown[], TResp> {
         }
       });
     }
+    addAbortListener(this.abortControlller.signal, () => {
+      for (const replyWaiter of this.msgRequests.values()) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        replyWaiter.reject(this.abortControlller.signal.reason);
+      }
+      this.msgRequests.clear();
+    });
   }
 
   private setupWorkerHandler(worker: WorkerThreads.Worker) {
@@ -183,6 +193,7 @@ export class WorkerThreadManager<TArgs extends unknown[], TResp> {
   }
 
   async close() {
+    this.abortControlller.abort();
     await Promise.all([...this.workers].map(worker => worker.terminate()));
     this.workers.clear();
   }
