@@ -62,7 +62,8 @@ function getMaybePromiseResult<T>(
     cb({ err });
   }
 }
-export class WorkerManager<TArgs extends unknown[], TResp> {
+
+export class WorkerThreadManager<TArgs extends unknown[], TResp> {
   private readonly workers = new Set<WorkerThreads.Worker>();
   private readonly idleWorkers: WorkerThreads.Worker[] = [];
 
@@ -93,8 +94,8 @@ export class WorkerManager<TArgs extends unknown[], TResp> {
     workerModule: WorkerPoolModuleInterface<TArgs, TResp>,
     opts: { workerCount?: number } = {}
   ) {
-    const workerManager = new WorkerManager(workerModule, opts);
-    return new Promise<WorkerManager<TArgs, TResp>>(resolve => {
+    const workerManager = new WorkerThreadManager(workerModule, opts);
+    return new Promise<WorkerThreadManager<TArgs, TResp>>(resolve => {
       workerManager.events.once('workersReady', () => {
         resolve(workerManager);
       });

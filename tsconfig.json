@@ -6,6 +6,7 @@
     "typeRoots": [
       "./node_modules/@types"
     ],
+    "isolatedModules": true,
     "declaration": true,
     "sourceMap": true,
     "outDir": "./dist",

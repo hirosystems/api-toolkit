@@ -1,6 +1,6 @@
 import * as assert from 'node:assert/strict';
 import * as os from 'node:os';
-import { WorkerManager } from '../worker-threads';
+import { WorkerThreadManager } from '../worker-thread-manager';
 import * as workerModule from './my-worker';
 import workerModuleDefaultExport from './my-worker-export-default';
 import { MyCustomError } from './my-worker';
@@ -8,7 +8,9 @@ import { addKnownErrorConstructor } from '../serialize-error';
 import { stopwatch } from '../time';
 
 test('worker module with default exports', async () => {
-  const workerManager = await WorkerManager.init(workerModuleDefaultExport, { workerCount: 2 });
+  const workerManager = await WorkerThreadManager.init(workerModuleDefaultExport, {
+    workerCount: 2,
+  });
   const res = await workerManager.exec(1, 1);
   expect(res).toBe('1');
   await workerManager.close();
@@ -20,7 +22,7 @@ describe('Worker tests', () => {
   const cpuPeggedTimeMs = 500;
 
   function initWorkerManager() {
-    return WorkerManager.init(workerModule, { workerCount });
+    return WorkerThreadManager.init(workerModule, { workerCount });
   }
 
   beforeAll(async () => {
