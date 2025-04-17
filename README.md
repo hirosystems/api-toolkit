@@ -43,7 +43,7 @@ Please see each tool's source directory for additional documentation
 * Node.js signal handlers that provide a way to shut down long-running application components
 gracefully on unhandled exceptions or interrupt signals.
 
-### CPU Profiler
+### Profiler server
 
 * Fastify server that controls a profiler capable of generating:
     * `.cpuprofile` files for CPU usage analysis

@@ -1,3 +1,52 @@
+## [1.8.0](https://github.com/hirosystems/api-toolkit/compare/v1.7.5...v1.8.0) (2025-03-25)
+
+
+### Features
+
+* add `reject` function to `waiter` ([#38](https://github.com/hirosystems/api-toolkit/issues/38)) ([8c56e1a](https://github.com/hirosystems/api-toolkit/commit/8c56e1aabbac026ba18ca3f8792394bd654aa5e6))
+
+## [1.7.5](https://github.com/hirosystems/api-toolkit/compare/v1.7.4...v1.7.5) (2025-03-24)
+
+
+### Bug Fixes
+
+* missing condition for `PostgresError: the database system is not yet accepting connections` ([#36](https://github.com/hirosystems/api-toolkit/issues/36)) ([6423000](https://github.com/hirosystems/api-toolkit/commit/6423000fe9d3cb9424179076ae50e487d7facf38))
+
+## [1.7.4](https://github.com/hirosystems/api-toolkit/compare/v1.7.3...v1.7.4) (2025-03-05)
+
+
+### Bug Fixes
+
+* isFinished never set on `waiter` ([#35](https://github.com/hirosystems/api-toolkit/issues/35)) ([9c1d2b3](https://github.com/hirosystems/api-toolkit/commit/9c1d2b3dcd6519e46324a56df83da2ebb6cc53e5))
+
+## [1.7.3](https://github.com/hirosystems/api-toolkit/compare/v1.7.2...v1.7.3) (2025-03-04)
+
+
+### Bug Fixes
+
+* use the built-in abortable async setTimeout from `node:timers/promises` rather than implementing ourselves ([#33](https://github.com/hirosystems/api-toolkit/issues/33)) ([954e7ea](https://github.com/hirosystems/api-toolkit/commit/954e7eaf47f747a6666e3d1884cf353ab0086f32))
+
+## [1.7.2](https://github.com/hirosystems/api-toolkit/compare/v1.7.1...v1.7.2) (2024-10-31)
+
+
+### Bug Fixes
+
+* memleak in timeout w/ abort signal ([#32](https://github.com/hirosystems/api-toolkit/issues/32)) ([d56a9ad](https://github.com/hirosystems/api-toolkit/commit/d56a9ad24f9850be3c372769b9486b71a85f4ae3))
+
+## [1.7.1](https://github.com/hirosystems/api-toolkit/compare/v1.7.0...v1.7.1) (2024-08-19)
+
+
+### Bug Fixes
+
+* heap snapshot file download ([#30](https://github.com/hirosystems/api-toolkit/issues/30)) ([800982b](https://github.com/hirosystems/api-toolkit/commit/800982b23393946af6c3017063506be1bb4e46df))
+
+## [1.7.0](https://github.com/hirosystems/api-toolkit/compare/v1.6.2...v1.7.0) (2024-08-16)
+
+
+### Features
+
+* add fastify cpu profiler server ([#28](https://github.com/hirosystems/api-toolkit/issues/28)) ([b224e06](https://github.com/hirosystems/api-toolkit/commit/b224e0673f09b71d52b8506f487c91aa60afdce5))
+
 ## [1.6.2](https://github.com/hirosystems/api-toolkit/compare/v1.6.1...v1.6.2) (2024-07-05)
 
 
