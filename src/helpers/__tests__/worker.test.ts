@@ -189,4 +189,37 @@ describe('Worker tests', () => {
       expect(result.value).toBe(i.toString());
     }
   });
+
+  test('Run more tasks than CPUs', async () => {
+    const watch = stopwatch();
+    const taskCount = workerManager.workerCount * 3;
+    const taskTime = 50;
+    const taskPromises = Array.from({ length: taskCount }, async (_, i) => {
+      console.time(`task ${i}`);
+      const res = await workerManager.exec(i, taskTime);
+      console.timeEnd(`task ${i}`);
+      return res;
+    });
+
+    // Ensure all workers were assigned a task and queue is correct length
+    expect(workerManager.busyWorkerCount).toBe(workerCount);
+    expect(workerManager.idleWorkerCount).toBe(0);
+    expect(workerManager.queuedJobCount).toBe(taskCount - workerCount);
+
+    const results = await Promise.allSettled(taskPromises);
+
+    // All tasks should complete roughly within the time in takes for one task to complete
+    // because the tasks are run in parallel on different threads.
+    // (Pad timing with an extra 50% to account for test code execution overhead)
+    expect(watch.getElapsed()).toBeLessThan(
+      Math.ceil(taskCount / workerManager.workerCount) * taskTime * 1.5
+    );
+
+    // Ensure tasks returned in expected order:
+    for (let i = 0; i < taskPromises.length; i++) {
+      const result = results[i];
+      assert(result.status === 'fulfilled');
+      expect(result.value).toBe(i.toString());
+    }
+  });
 });
