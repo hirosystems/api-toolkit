@@ -10,6 +10,9 @@ export function processTask(req: number, cpuWaitTimeMs: number) {
   if (req === 3333) {
     throw 'boom';
   }
+  if (req == 4444) {
+    throw createAggregateError();
+  }
   sleepSync(cpuWaitTimeMs);
   return req.toString();
 }
@@ -37,6 +40,13 @@ function createError() {
     }),
   };
   return error;
+}
+
+function createAggregateError() {
+  const error1 = new Error('Error1 in aggregate 1');
+  Object.assign(error1, { inner1code: 123 });
+  const error2 = new TypeError('Error2 in aggregate 2');
+  return new AggregateError([error1, error2], 'My aggregate error message', { cause: 'foo' });
 }
 
 export const workerModule = module;

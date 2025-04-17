@@ -114,6 +114,44 @@ describe('Worker tests', () => {
     });
   });
 
+  test('worker task throws with non-Error value', async () => {
+    const [res] = await Promise.allSettled([
+      // The worker will throw a non-error value when it receives this specific req value
+      workerManager.exec(3333, 1),
+    ]);
+    assert(res.status === 'rejected');
+    expect(res.reason).toBe('boom');
+  });
+
+  test('worker task throws AggregateError', async () => {
+    // Test that error de/ser across worker thread boundary works as expected
+    const [res] = await Promise.allSettled([
+      // The worker will throw an error when it receives this specific req value
+      workerManager.exec(4444, 1),
+    ]);
+    assert(res.status === 'rejected');
+    expect(res.reason).toBeInstanceOf(AggregateError);
+    expect(res.reason).toMatchObject({
+      name: 'AggregateError',
+      message: 'My aggregate error message',
+      stack: expect.any(String),
+      cause: 'foo',
+      errors: [
+        {
+          name: 'Error',
+          message: 'Error1 in aggregate 1',
+          inner1code: 123,
+          stack: expect.any(String),
+        },
+        {
+          name: 'TypeError',
+          message: 'Error2 in aggregate 2',
+          stack: expect.any(String),
+        },
+      ],
+    });
+  });
+
   test('run tasks on main thread', async () => {
     const watch = stopwatch();
     const results = await Promise.allSettled(
