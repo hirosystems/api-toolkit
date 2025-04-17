@@ -123,7 +123,7 @@ describe('Worker tests', () => {
     expect(res.reason).toBe('boom');
   });
 
-  test('worker task throws AggregateError', async () => {
+  test('worker task serializes AggregateError', async () => {
     // Test that error de/ser across worker thread boundary works as expected
     const [res] = await Promise.allSettled([
       // The worker will throw an error when it receives this specific req value
@@ -149,6 +149,24 @@ describe('Worker tests', () => {
           stack: expect.any(String),
         },
       ],
+    });
+  });
+
+  test('worker task serializes DOMException (AbortError)', async () => {
+    // Test that error de/ser across worker thread boundary works as expected
+    const [res] = await Promise.allSettled([
+      // The worker will throw an error when it receives this specific req value
+      workerManager.exec(5555, 1),
+    ]);
+    assert(res.status === 'rejected');
+    expect(res.reason).toBeInstanceOf(DOMException);
+    expect(res.reason).toMatchObject({
+      constructor: expect.objectContaining({
+        name: 'DOMException',
+      }),
+      name: 'AbortError',
+      message: 'This operation was aborted',
+      stack: expect.any(String),
     });
   });
 

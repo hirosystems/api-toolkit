@@ -43,6 +43,7 @@ export function addKnownErrorConstructor(
 }
 
 const commonProperties: Record<string, boolean> = {
+  name: false,
   message: false,
   stack: false,
   code: true,
@@ -50,14 +51,21 @@ const commonProperties: Record<string, boolean> = {
   errors: false,
 };
 
-export type SerializedError = {
+type SerializedError = {
+  constructorName: string;
   name: string;
   message: string;
   stack: string;
   [key: string]: any;
 };
 
-export function isErrorLike(value: unknown): value is Error & { stack: string } {
+export type ErrorLike = {
+  name: string;
+  message: string;
+  stack: string;
+};
+
+export function isErrorLike(value: unknown): value is ErrorLike {
   return (
     typeof value === 'object' &&
     value !== null &&
@@ -78,7 +86,8 @@ export function serializeError(subject: Error): SerializedError {
   }
 
   const data: SerializedError = {
-    name: subject instanceof DOMException ? 'DOMException' : subject.constructor.name ?? 'Error',
+    constructorName: subject.constructor.name ?? 'Error', // new field
+    name: subject.name,
     message: '',
     stack: '',
   };
@@ -95,14 +104,14 @@ export function serializeError(subject: Error): SerializedError {
   return data;
 }
 
-export function deserializeError(subject: SerializedError): Error {
+export function deserializeError(subject: ErrorLike): Error {
   if (!isErrorLike(subject)) {
     // If the subject is not an error, for example `throw "boom", then we throw.
     // This function should only be passed error objects, callers can use `isErrorLike`.
     throw new TypeError('Failed to desserialize error, expected an error object');
   }
 
-  let con = errorConstructors.get(subject.name);
+  let con = errorConstructors.get((subject as SerializedError).constructorName ?? subject.name);
   if (!con) {
     // If the constructor is not found, use the generic Error constructor
     con = Error;

@@ -13,6 +13,9 @@ export function processTask(req: number, cpuWaitTimeMs: number) {
   if (req == 4444) {
     throw createAggregateError();
   }
+  if (req === 5555) {
+    throwDOMError();
+  }
   sleepSync(cpuWaitTimeMs);
   return req.toString();
 }
@@ -47,6 +50,12 @@ function createAggregateError() {
   Object.assign(error1, { inner1code: 123 });
   const error2 = new TypeError('Error2 in aggregate 2');
   return new AggregateError([error1, error2], 'My aggregate error message', { cause: 'foo' });
+}
+
+function throwDOMError() {
+  const ac = new AbortController();
+  ac.abort();
+  ac.signal.throwIfAborted();
 }
 
 export const workerModule = module;

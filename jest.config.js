@@ -2,7 +2,6 @@
 
 /** @type {import('jest').Config} */
 module.exports = {
-    testTimeout: 10000000,
     // All imported modules in your tests should be mocked automatically
     // automock: false,
   
