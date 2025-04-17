@@ -39,58 +39,15 @@ export function addKnownErrorConstructor(
       cause: error,
     });
   }
-
   errorConstructors.set(constructor.name, constructor as ErrorConstructor);
 }
 
-const commonProperties: {
-  name: string;
-  descriptor: Partial<PropertyDescriptor>;
-  deserialize?: (_: any) => any;
-  serialize?: (_: any) => any;
-}[] = [
-  {
-    name: 'message',
-    descriptor: {
-      enumerable: false,
-      configurable: true,
-      writable: true,
-    },
-  },
-  {
-    name: 'stack',
-    descriptor: {
-      enumerable: false,
-      configurable: true,
-      writable: true,
-    },
-  },
-  {
-    name: 'code',
-    descriptor: {
-      enumerable: true,
-      configurable: true,
-      writable: true,
-    },
-  },
-  {
-    name: 'cause',
-    descriptor: {
-      enumerable: false,
-      configurable: true,
-      writable: true,
-    },
-  },
-  {
-    name: 'errors',
-    descriptor: {
-      enumerable: false,
-      configurable: true,
-      writable: true,
-    },
-    deserialize: (errors: SerializedError[]) => errors.map(error => deserializeError(error)),
-    serialize: (errors: Error[]) => errors.map(error => serializeError(error)),
-  },
+const commonProperties: [name: string, enumerable: boolean][] = [
+  ['message', false],
+  ['stack', false],
+  ['code', true],
+  ['cause', false],
+  ['errors', false],
 ];
 
 export type SerializedError = {
@@ -126,18 +83,10 @@ export function serializeError(subject: Error): SerializedError {
     stack: '',
   };
 
-  for (const prop of commonProperties) {
-    if (!(prop.name in subject)) {
-      continue;
+  for (const [name] of commonProperties) {
+    if (name in subject) {
+      data[name] = deepSerialize((subject as any)[name]);
     }
-    let value = (subject as any)[prop.name];
-    // TODO: if value instanceof Error then recursively serializeError
-    if (prop.serialize) {
-      value = prop.serialize(value);
-    } else {
-      value = deepSerialize(value);
-    }
-    data[prop.name] = value;
   }
 
   // Include any other enumerable own properties
@@ -172,25 +121,20 @@ export function deserializeError(subject: SerializedError): Error {
   }
   const output = Object.create(con.prototype) as Error;
 
-  for (const prop of commonProperties) {
-    if (!(prop.name in subject)) continue;
-
-    let value = (subject as any)[prop.name];
-    if (prop.deserialize) {
-      value = prop.deserialize(value);
-    } else {
-      value = deepDeserialize(value);
+  for (const [name, enumerable] of commonProperties) {
+    if (name in subject) {
+      Object.defineProperty(output, name, {
+        enumerable,
+        configurable: true,
+        writable: true,
+        value: deepDeserialize((subject as any)[name]),
+      });
     }
-
-    Object.defineProperty(output, prop.name, {
-      ...prop.descriptor,
-      value: value,
-    });
   }
 
   // Add any other properties (custom props not in commonProperties)
   for (const key of Object.keys(subject)) {
-    if (!commonProperties.some(p => p.name === key)) {
+    if (!commonProperties.some(([name]) => name === key)) {
       (output as any)[key] = deepDeserialize((subject as any)[key]);
     }
   }
