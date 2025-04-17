@@ -143,31 +143,19 @@ export function deserializeError(subject: SerializedError): Error {
 }
 
 function deepSerialize(value: unknown): unknown {
-  if (Array.isArray(value)) {
-    return value.map(deepSerialize);
-  } else if (isErrorLike(value)) {
-    return serializeError(value);
-  } else if (value && typeof value === 'object') {
-    const result: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
-      result[k] = deepSerialize(v);
-    }
-    return result;
+  if (Array.isArray(value)) return value.map(deepSerialize);
+  if (isErrorLike(value)) return serializeError(value);
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, deepSerialize(v)]));
   }
   return value;
 }
 
 function deepDeserialize(value: unknown): unknown {
-  if (Array.isArray(value)) {
-    return value.map(deepDeserialize);
-  } else if (isErrorLike(value)) {
-    return deserializeError(value);
-  } else if (value && typeof value === 'object') {
-    const result: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
-      result[k] = deepDeserialize(v);
-    }
-    return result;
+  if (Array.isArray(value)) return value.map(deepDeserialize);
+  if (isErrorLike(value)) return deserializeError(value);
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, deepDeserialize(v)]));
   }
   return value;
 }
