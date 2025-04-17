@@ -42,13 +42,13 @@ export function addKnownErrorConstructor(
   errorConstructors.set(constructor.name, constructor as ErrorConstructor);
 }
 
-const commonProperties: [name: string, enumerable: boolean][] = [
-  ['message', false],
-  ['stack', false],
-  ['code', true],
-  ['cause', false],
-  ['errors', false],
-];
+const commonProperties: Record<string, boolean> = {
+  message: false,
+  stack: false,
+  code: true,
+  cause: false,
+  errors: false,
+};
 
 export type SerializedError = {
   name: string;
@@ -77,31 +77,22 @@ export function serializeError(subject: Error): SerializedError {
     throw new TypeError('Failed to serialize error, expected an error object');
   }
 
-  const data: Record<string, any> = {
-    name: 'Error',
+  const data: SerializedError = {
+    name: subject instanceof DOMException ? 'DOMException' : subject.constructor.name ?? 'Error',
     message: '',
     stack: '',
   };
 
-  for (const [name] of commonProperties) {
-    if (name in subject) {
-      data[name] = deepSerialize((subject as any)[name]);
-    }
+  for (const key of Object.keys(commonProperties)) {
+    if (key in subject) data[key] = deepSerialize((subject as any)[key]);
   }
 
   // Include any other enumerable own properties
   for (const key of Object.keys(subject)) {
-    if (!(key in data)) {
-      data[key] = deepSerialize((subject as any)[key]);
-    }
+    if (!(key in data)) data[key] = deepSerialize((subject as any)[key]);
   }
 
-  if (globalThis.DOMException && subject instanceof globalThis.DOMException) {
-    data.name = 'DOMException';
-  } else {
-    data.name = subject.constructor.name;
-  }
-  return data as SerializedError;
+  return data;
 }
 
 export function deserializeError(subject: SerializedError): Error {
@@ -121,20 +112,20 @@ export function deserializeError(subject: SerializedError): Error {
   }
   const output = Object.create(con.prototype) as Error;
 
-  for (const [name, enumerable] of commonProperties) {
-    if (name in subject) {
-      Object.defineProperty(output, name, {
+  for (const [key, enumerable] of Object.entries(commonProperties)) {
+    if (key in subject) {
+      Object.defineProperty(output, key, {
         enumerable,
         configurable: true,
         writable: true,
-        value: deepDeserialize((subject as any)[name]),
+        value: deepDeserialize((subject as any)[key]),
       });
     }
   }
 
   // Add any other properties (custom props not in commonProperties)
   for (const key of Object.keys(subject)) {
-    if (!commonProperties.some(([name]) => name === key)) {
+    if (!(key in commonProperties)) {
       (output as any)[key] = deepDeserialize((subject as any)[key]);
     }
   }
