@@ -2,9 +2,35 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import { spawnSync, execSync } from 'child_process';
+import { getServerVersion } from '../index';
+import { isDebugging } from '../../helpers';
 
 const scriptFilePath = path.resolve('bin/api-toolkit-git-info.js');
 const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), '.tmp'));
+
+describe('getServerVersion does not throw when debugging', () => {
+  let debuggingEnabled: boolean;
+  let originalEnv: string | undefined;
+
+  beforeAll(() => {
+    debuggingEnabled = isDebugging();
+    originalEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'prod';
+  });
+
+  afterAll(() => {
+    process.env.NODE_ENV = originalEnv;
+  });
+
+  test('getServerVersion does not throw when debugging', () => {
+    if (!debuggingEnabled) {
+      console.log(`Skipping test because debugging is not enabled.`);
+      return;
+    }
+    const version = getServerVersion();
+    expect(version.branch).toBe('debugging');
+  });
+});
 
 describe('git info script', () => {
   test('error when git repo data not available', () => {
