@@ -1,12 +1,12 @@
 {
   "compilerOptions": {
-    "target": "es2021",
-    "lib": [ "es2021" ],
-    "module": "commonjs",
-    "moduleResolution": "node",
+    "target": "es2024",
+    "module": "node16",
+    "moduleResolution": "node16",
     "typeRoots": [
       "./node_modules/@types"
     ],
+    "isolatedModules": true,
     "declaration": true,
     "sourceMap": true,
     "outDir": "./dist",
