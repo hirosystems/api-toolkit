@@ -16,8 +16,7 @@ const DisposeSymbol: typeof Symbol.dispose = Symbol.dispose ?? Symbol.for('nodej
  * Supports typed `EventEmitter`s and optional cancellation via `AbortSignal`.
  *
  * @example
- * Here's a simple example:
- * ```
+ * ```ts
  * import { EventEmitter } from 'node:events';
  *
  * const emitter = new EventEmitter<{
@@ -34,6 +33,22 @@ const DisposeSymbol: typeof Symbol.dispose = Symbol.dispose ?? Symbol.for('nodej
  *
  * // outputs: "Received event with id: 3, message: Message 3"
  * console.log(`Received event with id: ${id}, message: ${msg}`);
+ * ```
+ *
+ * @example
+ * ```ts
+ * import { EventEmitter } from 'node:events';
+ *
+ * const emitter = new EventEmitter<{ myEvent: [id: number, msg: string] }>();
+ *
+ * const signal = AbortSignal.timeout(10);
+ *
+ * setTimeout(() => emitter.emit('myEvent', 1, 'Hello'), 1000);
+ *
+ * const whenPromise = onceWhen(emitter, 'myEvent', id => id === 1, { signal });
+ *
+ * // This rejects because the signal is aborted before the event is emitted
+ * await expect(whenPromise).rejects.toThrow(signal.reason);
  * ```
  */
 export function onceWhen<
@@ -85,21 +100,4 @@ export function onceWhen<
 
     (emitter as EventEmitter).on(eventName, listener);
   });
-}
-
-export async function testOnceWhen() {
-  const emitter = new EventEmitter<{
-    myEvent: [id: number, msg: string];
-  }>();
-
-  setTimeout(() => {
-    for (let i = 0; i <= 5; i++) {
-      emitter.emit('myEvent', i, `Message ${i}`);
-    }
-  }, 100);
-
-  const [id, msg] = await onceWhen(emitter, 'myEvent', (id, msg) => id === 3);
-
-  // outputs: "Received event with id: 3, message: Message 3"
-  console.log(`Received event with id: ${id}, message: ${msg}`);
 }

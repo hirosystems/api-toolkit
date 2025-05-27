@@ -122,4 +122,14 @@ describe('onceWhen tests', () => {
     // Expect that the event listener was removed after onceWhen is finished
     expect(emitter.eventNames()).toStrictEqual([]);
   });
+
+  test('abort signal test', async () => {
+    const emitter = new EventEmitter<{ myEvent: [id: number, msg: string] }>();
+    const signal = AbortSignal.timeout(10);
+    setTimeout(() => emitter.emit('myEvent', 1, 'Hello'), 1000);
+    const whenPromise = onceWhen(emitter, 'myEvent', id => id === 1, { signal });
+    // This rejects because the signal is aborted before the event is emitted
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+    await expect(whenPromise).rejects.toThrow(signal.reason);
+  });
 });
