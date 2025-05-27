@@ -14,6 +14,27 @@ const DisposeSymbol: typeof Symbol.dispose = Symbol.dispose ?? Symbol.for('nodej
  * The resolved value is an array of the arguments emitted with the event.
  *
  * Supports typed `EventEmitter`s and optional cancellation via `AbortSignal`.
+ *
+ * @example
+ * Here's a simple example:
+ * ```
+ * import { EventEmitter } from 'node:events';
+ *
+ * const emitter = new EventEmitter<{
+ *   myEvent: [id: number, msg: string];
+ * }>();
+ *
+ * setTimeout(() => {
+ *   for (let i = 0; i <= 5; i++) {
+ *     emitter.emit('myEvent', i, `Message ${i}`);
+ *   }
+ * }, 100);
+ *
+ * const [id, msg] = await onceWhen(emitter, 'myEvent', (id, msg) => id === 3);
+ *
+ * // outputs: "Received event with id: 3, message: Message 3"
+ * console.log(`Received event with id: ${id}, message: ${msg}`);
+ * ```
  */
 export function onceWhen<
   EventMap extends Record<string, any[]> = Record<string, any[]>,
@@ -64,4 +85,21 @@ export function onceWhen<
 
     (emitter as EventEmitter).on(eventName, listener);
   });
+}
+
+export async function testOnceWhen() {
+  const emitter = new EventEmitter<{
+    myEvent: [id: number, msg: string];
+  }>();
+
+  setTimeout(() => {
+    for (let i = 0; i <= 5; i++) {
+      emitter.emit('myEvent', i, `Message ${i}`);
+    }
+  }, 100);
+
+  const [id, msg] = await onceWhen(emitter, 'myEvent', (id, msg) => id === 3);
+
+  // outputs: "Received event with id: 3, message: Message 3"
+  console.log(`Received event with id: ${id}, message: ${msg}`);
 }
