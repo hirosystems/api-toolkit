@@ -1,3 +1,17 @@
+## [1.9.0](https://github.com/hirosystems/api-toolkit/compare/v1.8.0...v1.9.0) (2025-06-02)
+
+
+### Features
+
+* onceWhen function ([#43](https://github.com/hirosystems/api-toolkit/issues/43)) ([840b2f1](https://github.com/hirosystems/api-toolkit/commit/840b2f1d9378762db7985bbf9f06bb49b78a5b8e))
+* onceWhen function ([#43](https://github.com/hirosystems/api-toolkit/issues/43)) ([#44](https://github.com/hirosystems/api-toolkit/issues/44)) ([4013b38](https://github.com/hirosystems/api-toolkit/commit/4013b38fbf17840eb905830c35469e12eb8e3670))
+* worker thread pool ([#41](https://github.com/hirosystems/api-toolkit/issues/41)) ([16c9616](https://github.com/hirosystems/api-toolkit/commit/16c96167eb50fb3cb19183b57cf0231daaa905f1))
+
+
+### Bug Fixes
+
+* git info check should not throw when debugging ([#39](https://github.com/hirosystems/api-toolkit/issues/39)) ([66f44d5](https://github.com/hirosystems/api-toolkit/commit/66f44d57cd99fda8242135a80e13d0058caf3ab5))
+
 ## [1.8.0](https://github.com/hirosystems/api-toolkit/compare/v1.7.5...v1.8.0) (2025-03-25)
 
 
