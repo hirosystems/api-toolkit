@@ -1,6 +1,5 @@
 import * as WorkerThreads from 'node:worker_threads';
 import * as os from 'node:os';
-import * as path from 'node:path';
 import { EventEmitter, addAbortListener } from 'node:events';
 import { waiter, Waiter } from './time';
 import { deserializeError, isErrorLike } from './serialize-error';
@@ -124,7 +123,9 @@ export class WorkerThreadManager<TArgs extends unknown[], TResp> {
       const workerOpt: WorkerThreads.WorkerOptions = {
         workerData,
       };
-      if (path.extname(workerThreadInitFilename) === '.ts') {
+      const hasTsSource =
+        workerThreadInitFilename.endsWith('.ts') || this.workerFile.endsWith('.ts');
+      if (hasTsSource) {
         if (process.env.NODE_ENV !== 'test') {
           throw new Error(
             'Worker threads are being created with ts-node outside of a test environment'
