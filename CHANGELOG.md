@@ -1,3 +1,10 @@
+## [1.9.1](https://github.com/hirosystems/api-toolkit/compare/v1.9.0...v1.9.1) (2025-06-04)
+
+
+### Bug Fixes
+
+* register ts-node in test environments if consumer project passes a .ts source file ([#47](https://github.com/hirosystems/api-toolkit/issues/47)) ([dcb926a](https://github.com/hirosystems/api-toolkit/commit/dcb926ae6388b3fee4a3ecf039628f08a67727a2))
+
 ## [1.9.0](https://github.com/hirosystems/api-toolkit/compare/v1.8.0...v1.9.0) (2025-06-02)
 
 
