@@ -8,8 +8,7 @@ import { isProdEnv } from '../helpers/values';
  */
 export const sqlTransactionContext = new AsyncLocalStorage<SqlTransactionContext>();
 type SqlTransactionContext = {
-  usageName: string;
-  sql: PgSqlClient;
+  [dbName: string]: PgSqlClient;
 };
 type UnwrapPromiseArray<T> = T extends any[]
   ? {
@@ -26,8 +25,9 @@ export abstract class BasePgStore {
    * async context will be returned to guarantee transaction consistency.
    */
   get sql(): PgSqlClient {
+    const dbName = this._sql.options.database?.toString() ?? 'default';
     const sqlContext = sqlTransactionContext.getStore();
-    return sqlContext ? sqlContext.sql : this._sql;
+    return sqlContext ? sqlContext[dbName] : this._sql;
   }
   private readonly _sql: PgSqlClient;
 
@@ -52,15 +52,16 @@ export abstract class BasePgStore {
     callback: (sql: PgSqlClient) => T | Promise<T>,
     readOnly = true
   ): Promise<UnwrapPromiseArray<T>> {
-    // Do we have a scoped client already? Use it directly.
-    const sqlContext = sqlTransactionContext.getStore();
-    if (sqlContext) {
-      return callback(sqlContext.sql) as UnwrapPromiseArray<T>;
+    // Do we have a scoped client already? Use it directly. Key is the database name.
+    const dbName = this._sql.options.database?.toString() ?? 'default';
+    const sql = sqlTransactionContext.getStore()?.[dbName];
+    if (sql) {
+      return callback(sql) as UnwrapPromiseArray<T>;
     }
     // Otherwise, start a transaction and store the scoped connection in the current async context.
-    const usageName = this._sql.options.connection.application_name ?? '';
     return this._sql.begin(readOnly ? 'read only' : 'read write', sql => {
-      return sqlTransactionContext.run({ usageName, sql }, () => callback(sql));
+      const currentStore = sqlTransactionContext.getStore() ?? {};
+      return sqlTransactionContext.run({ ...currentStore, [dbName]: sql }, () => callback(sql));
     });
   }
 

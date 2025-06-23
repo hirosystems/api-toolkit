@@ -142,3 +142,19 @@ export function toEnumValue<T>(enm: { [s: string]: T }, value: string): T | unde
     ? (value as unknown as T)
     : undefined;
 }
+
+/**
+ * Unwraps a value that may be undefined or null.
+ * @param val - The value to unwrap
+ * @param onNullish - Callback to throw an error if the value is null or undefined
+ * @returns The unwrapped value
+ */
+export function unwrap<T>(val: T | null, onNullish?: () => string): Exclude<T, undefined | null> {
+  if (val === undefined) {
+    throw new Error(onNullish?.() ?? 'value is undefined');
+  }
+  if (val === null) {
+    throw new Error(onNullish?.() ?? 'value is null');
+  }
+  return val as Exclude<T, undefined | null>;
+}
