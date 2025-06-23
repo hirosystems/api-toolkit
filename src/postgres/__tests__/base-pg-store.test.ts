@@ -92,21 +92,18 @@ describe('BasePgStore', () => {
   });
 
   test('postgres transaction connection integrity', async () => {
-    const usageName = 'postgres:test;datastore-crud';
     const obj = db.sql;
+    const dbName = obj.options.database;
 
     expect(sqlTransactionContext.getStore()).toBeUndefined();
     await db.sqlTransaction(async sql => {
-      // Transaction flag is open.
-      expect(sqlTransactionContext.getStore()?.usageName).toBe(usageName);
       // New connection object.
       const newObj = sql;
       expect(obj).not.toEqual(newObj);
-      expect(sqlTransactionContext.getStore()?.sql).toEqual(newObj);
+      expect(sqlTransactionContext.getStore()?.[dbName]).toEqual(newObj);
 
       // Nested tx uses the same connection object.
       await db.sqlTransaction(sql => {
-        expect(sqlTransactionContext.getStore()?.usageName).toBe(usageName);
         expect(newObj).toEqual(sql);
       });
 
