@@ -1,3 +1,10 @@
+## [1.10.0](https://github.com/hirosystems/api-toolkit/compare/v1.9.1...v1.10.0) (2025-06-23)
+
+
+### Features
+
+* support sql transactions for multiple databases ([#49](https://github.com/hirosystems/api-toolkit/issues/49)) ([2aa3a47](https://github.com/hirosystems/api-toolkit/commit/2aa3a4718fa2b65a06ff3ad2efaee76b29ba798d))
+
 ## [1.9.1](https://github.com/hirosystems/api-toolkit/compare/v1.9.0...v1.9.1) (2025-06-04)
 
 
