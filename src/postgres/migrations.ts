@@ -39,7 +39,7 @@ export async function runMigrations(
     dir,
     direction,
     count: Infinity,
-    ignorePattern: '.*map',
+    ignorePattern: '.*(\\.map|\\.d\\.ts)',
     databaseUrl:
       typeof args === 'string'
         ? args
