@@ -1,3 +1,10 @@
+## [1.10.1](https://github.com/hirosystems/api-toolkit/compare/v1.10.0...v1.10.1) (2025-07-09)
+
+
+### Bug Fixes
+
+* ignore .d.ts files from migrations ([#50](https://github.com/hirosystems/api-toolkit/issues/50)) ([b5e9369](https://github.com/hirosystems/api-toolkit/commit/b5e936982feeba5da6ce5001c4abc8b3c932a5d7))
+
 ## [1.10.0](https://github.com/hirosystems/api-toolkit/compare/v1.9.1...v1.10.0) (2025-06-23)
 
 
