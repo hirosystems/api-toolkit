@@ -1,3 +1,10 @@
+## [1.11.0](https://github.com/hirosystems/api-toolkit/compare/v1.10.1...v1.11.0) (2025-10-21)
+
+
+### Features
+
+* allow raw sql connection access ([#52](https://github.com/hirosystems/api-toolkit/issues/52)) ([04140e3](https://github.com/hirosystems/api-toolkit/commit/04140e337843ad951396a60c646b59a9c4be112e))
+
 ## [1.10.1](https://github.com/hirosystems/api-toolkit/compare/v1.10.0...v1.10.1) (2025-07-09)
 
 
