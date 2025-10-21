@@ -29,7 +29,8 @@ export abstract class BasePgStore {
     const sqlContext = sqlTransactionContext.getStore();
     return sqlContext ? sqlContext[dbName] : this._sql;
   }
-  private readonly _sql: PgSqlClient;
+  /** The raw SQL client instance. */
+  readonly _sql: PgSqlClient;
 
   constructor(sql: PgSqlClient) {
     this._sql = sql;
