@@ -118,4 +118,15 @@ describe('BasePgStore', () => {
     expect(sqlTransactionContext.getStore()).toBeUndefined();
     expect(db.sql).toEqual(obj);
   });
+
+  test('isConnected returns true when the connection is alive', async () => {
+    const connected = await db.isConnected();
+    expect(connected).toBe(true);
+  });
+
+  test('isConnected returns false when the connection is not alive', async () => {
+    jest.spyOn(db, 'sql').mockRejectedValueOnce(new Error('Connection lost'));
+    const connected = await db.isConnected();
+    expect(connected).toBe(false);
+  });
 });
