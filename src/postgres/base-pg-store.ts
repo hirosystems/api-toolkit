@@ -86,6 +86,19 @@ export abstract class BasePgStore {
       isProdEnv ? this.sql`CONCURRENTLY` : this.sql``
     } ${this.sql(viewName)}`;
   }
+
+  /**
+   * Checks if the database connection is alive.
+   * @returns True if connected, false otherwise.
+   */
+  async isConnected(): Promise<boolean> {
+    try {
+      await this.sql`SELECT NOW()`;
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
 }
 
 /**
@@ -115,5 +128,8 @@ export abstract class BasePgStoreModule {
   }
   async refreshMaterializedView(viewName: string): Promise<void> {
     return this.parent.refreshMaterializedView(viewName);
+  }
+  async isConnected(): Promise<boolean> {
+    return this.parent.isConnected();
   }
 }
