@@ -1,3 +1,9 @@
+## [1.12.0](https://github.com/hirosystems/api-toolkit/compare/v1.11.0...v1.12.0) (2025-12-17)
+
+### Features
+
+* implement 'isConnected' helper function ([#55](https://github.com/hirosystems/api-toolkit/issues/55)) ([#56](https://github.com/hirosystems/api-toolkit/issues/56)) ([00e9787](https://github.com/hirosystems/api-toolkit/commit/00e97875040e059172d24ed44364ff7609f22c9d))
+
 ## [1.11.0](https://github.com/hirosystems/api-toolkit/compare/v1.10.1...v1.11.0) (2025-10-21)
 
 
